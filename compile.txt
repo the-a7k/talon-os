@@ -1,0 +1,2 @@
+nasm -f bin bootsec.asm -o bootsec.bin
+qemu-system-x86_64 bootsec.bin

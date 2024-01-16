@@ -1,11 +1,10 @@
-[org 0x7c00]            ; Global offset
+[org 0x7c00]
 
 mov si, STRING_ONE
 call asciiout
 call newline
 mov si, STRING_TWO
 call asciiout
-
 
 jmp $
 
