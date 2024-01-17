@@ -1,4 +1,4 @@
-asciiout:
+rm_asciiout:                     ; Main register: 'SI'
     pusha
     str_loop:
         mov al, [si]
@@ -14,7 +14,7 @@ asciiout:
         jmp str_loop
 
 
-newline:
+rm_newline:
     mov ah, 0x0e
     mov al, 0x0a                ; ASCII line feed
     int 0x10
@@ -23,7 +23,7 @@ newline:
     ret
 
 
-hexout:
+rm_hexout:                      ; Main register: 'DX'
     pusha
     mov cx, 0                   ; Counter 0-4
 
@@ -31,7 +31,7 @@ hexout:
         cmp cx, 4               ; Fixed length of 4
         je print_hex
 
-        mov ax, di
+        mov ax, dx
         and ax, 0x000f          ; Get last number
         add ax, 0x30            ; Hex to ASCII offset
         cmp ax, 0x39            ; Compare if larger then ASCII 0-9
@@ -42,13 +42,13 @@ hexout:
             mov si, HEX_STR + 5
             sub si, cx
             mov [si], al
-            ror di, 4           ; Rotate next number to the end
+            ror dx, 4           ; Rotate next number to the end
             inc cx
             jmp hex_loop
 
         print_hex:
             mov si, HEX_STR
-            call asciiout
+            call rm_asciiout
             popa
             ret
 

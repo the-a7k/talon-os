@@ -20,18 +20,22 @@ loaddisk:
 
     disk_err:
         mov si, DISK_ERROR
-        call asciiout
+        call rm_asciiout
         mov dh, ah
-        call hexout
+        call rm_newline
+        call rm_hexout
         jmp disk_loop
 
     sector_err:
         mov si, SECTORS_ERROR
-        call asciiout
+        call rm_asciiout
 
     disk_loop:
         jmp $
 
 
-DISK_ERROR: db "Disk read error", 0
-SECTORS_ERROR: db "Incorrect number of sectors read", 0
+DISK_ERROR: 
+    db "Disk read error", 0
+    
+SECTORS_ERROR: 
+    db "Incorrect number of sectors read", 0
