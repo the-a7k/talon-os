@@ -29,4 +29,4 @@ run: os-image.bin
 	qemu-system-i386 -fda $<
 
 clean:
-	rm *.bin *.o *.dis
+	rm *.bin *.o*.dis
