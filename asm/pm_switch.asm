@@ -1,7 +1,7 @@
 [bits 16]
 
 pm_switch:
-    cli                         ; Disabling BIOS IRQ
+    cli                         ; Disabling BIOS interrupts
     lgdt [gdt_descriptor]
     mov eax, cr0
     or eax, 1

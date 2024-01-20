@@ -9,7 +9,7 @@ loaddisk:
     mov ch, 0       ; HDD cylinder number
     mov dh, 0       ; HDD head number
 
-    int 0x13        ; Disk access IRQ
+    int 0x13        ; Disk access interrupt
     jc disk_err
 
     pop dx

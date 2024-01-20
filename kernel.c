@@ -12,8 +12,8 @@ void print_char(unsigned char c, uint8_t color, int x, int y) {
 
 
 void clear_screen() {
+    volatile uint16_t* vga_buffer = (uint16_t*)0xB8000; 
     for (size_t y = 0; y < Y_SIZE; y++) {
-        volatile uint16_t* vga_buffer = (uint16_t*)0xB8000; 
         for (size_t x = 0; x < X_SIZE; x++) {
             vga_buffer[y * 80 + x] = 0;
         }

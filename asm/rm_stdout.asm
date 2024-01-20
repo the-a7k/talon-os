@@ -1,4 +1,4 @@
-rm_asciiout:                    ; Main register: 'BX'
+rm_asciiout:                    ; Main register: BX
     pusha
     str_loop:
         mov al, [bx]
@@ -23,7 +23,7 @@ rm_newline:
     ret
 
 
-rm_hexout:                      ; Main register: 'DX'
+rm_hexout:                      ; Main register: DX
     pusha
     mov cx, 0                   ; Counter 0-4
 
