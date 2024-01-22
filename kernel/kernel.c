@@ -1,13 +1,18 @@
-#include "../drivers/ports.h"
 #include "../drivers/screen.h"
+#include "util.h"
 
 
 void main() {
     clear_screen();
-    print_str("Hello\nWorld!", 0, 0);
-    print_str("Text Overflow", 75, 10);
-    print_str("Text...", 20, 20);
-    print_str("Overwrite", 24, 20);
-    print_str("Row clear", 0, 79);
-    clear_row(79);
+
+    for (int i = 0; i < 25; i++) {
+        char str[10];
+        int_to_ascii(i, str);
+        print_at(str, 0, i);
+    }
+    
+    print_cursor("\nHey\nHere\nHello\nBye\nGoodbye");
+    clear_row(10);
+    print_cursor("!");
 }
+
