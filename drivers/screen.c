@@ -48,25 +48,22 @@ void print_cursor(char* str) {
 
 
 void clear_row(int row) {
-    int cursor_current = get_cursor_offset();
+    volatile unsigned char* vga_buffer = (unsigned char*) VIDEO_MEMORY;
+    int current_row = calc_offset(0, row);
+    int current_cursor = get_cursor_offset();
     for (int x = 0; x < COL_SIZE; x++) {
-        print_cell(0, 0, x, row);
+        vga_buffer[current_row + x * 2] = 0;
+        vga_buffer[current_row + x * 2 + 1] = WHITE_ON_BLACK;
     }
-
-    set_cursor_offset(
-        calc_offset(
-            calc_col(cursor_current), 
-            calc_row(cursor_current)
-        )
-    );
-}   
+    set_cursor_offset(calc_offset(0, row));
+} 
 
 
 void clear_screen() {
     for (int y = 0; y < ROW_SIZE; y++) {
         clear_row(y);
     }
-    set_cursor_offset(calc_offset(0,0));
+    set_cursor_offset(calc_offset(0, 0));
 }
 
 
@@ -108,14 +105,16 @@ int print_cell(char c, int color, int col, int row) {
             );
         }
 
-        char* last_line = calc_offset(0, ROW_SIZE-1) + VIDEO_MEMORY;
-        for (int i = 0; i < COL_SIZE * 2; i++) {
-            last_line[i] = 0;
-        }
+        clear_row(24);
+
         offset -= 2 * COL_SIZE;
+        set_cursor_offset(calc_offset(0,24));
     }
 
-    set_cursor_offset(offset);
+    else {
+        set_cursor_offset(offset);
+    }
+    
     return offset;
 }
 
