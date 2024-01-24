@@ -1,4 +1,4 @@
-#include "../drivers/screen.h"
+#include "../drivers/tty.h"
 #include "util.h"
 
 
@@ -8,14 +8,12 @@ void main() {
     for (int i = 0; i < 25; i++) {
         char str[25];
         int_to_ascii(i, str);
-        print_at(str, 0, i);
+        kprint(str);
+        newline();
     }
 
-    print_cursor("\nScroll test - shifting line 0");
-    print_cursor("\nScroll test - shifting line 1");
-
-    clear_row(0);
-    
+    kprint("\nScroll test: \tshifting line 1");
+    kprint_color("\nScroll test: \tshifting line 2", BLUE, WHITE);
 
 }
 
