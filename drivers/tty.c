@@ -35,7 +35,7 @@ void kprint_color(char* str, uint8_t bg, uint8_t fg) {
             cursor_advance();
             pos += 2;
         }
-
+        
         i++;
     }
 }
@@ -113,9 +113,9 @@ void cursor_retreat() {
 void move_cursor(uint8_t col, uint8_t row) {
     uint16_t pos = calc_pos(col, row) / 2;
     outb(VGA_CTRL_PORT, VGA_HIGH_BYTE);
-    outb(VGA_DATA_PORT, (unsigned char)(pos >> 8));
+    outb(VGA_DATA_PORT, (uint8_t)(pos >> 8));
     outb(VGA_CTRL_PORT, VGA_LOW_BYTE);
-    outb(VGA_DATA_PORT, (unsigned char)(pos & 0xff));
+    outb(VGA_DATA_PORT, (uint8_t)(pos & 0xff));
 }
 
 

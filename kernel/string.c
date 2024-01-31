@@ -1,5 +1,7 @@
-int str_len(char* str) {
-    int size = 0;
+#include "string.h"
+
+size_t strlen(char* str) {
+    size_t size = 0;
     while (str[size] != '\0') {
         size++;
     }
@@ -7,9 +9,9 @@ int str_len(char* str) {
 }
 
 
-void str_reverse(char str[]) {
+void strrev(char* str) {
     int current = 0;
-    for (int i = str_len(str)-1; i >= current; i--) {
+    for (int i = strlen(str)-1; i >= current; i--) {
         char current_char = str[current];
         str[current++] = str[i];
         str[i] = current_char;

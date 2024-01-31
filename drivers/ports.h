@@ -1,4 +1,11 @@
-unsigned char inb (unsigned short port);
-void outb (unsigned short port, unsigned char data);
-unsigned short inw (unsigned short port);
-void outw (unsigned short port, unsigned short data);
+#ifndef _PORTS_H_
+#define _PORTS_H_
+
+#include <stdint.h>
+
+uint8_t inb (uint16_t port);
+void outb (uint16_t port, uint8_t data);
+uint16_t inw (uint16_t port);
+void outw (uint16_t port, uint16_t data);
+
+#endif

@@ -2,25 +2,25 @@
 
 //  Read a byte from the specified port
 
-unsigned char inb (unsigned short port) {
+uint8_t inb (uint16_t port) {
     unsigned char result;
     asm("in %%dx, %%al" : "=a" (result) : "d" (port));
     return result;
 }
 
 
-void outb (unsigned short port, unsigned char data) {
+void outb (uint16_t port, uint8_t data) {
     asm volatile("out %%al, %%dx" : : "a" (data), "d" (port));
 }
 
 
-unsigned short inw (unsigned short port) {
-    unsigned short result;
+uint16_t inw (uint16_t port) {
+    uint16_t result;
     asm("in %%dx, %%ax" : "=a" (result) : "d" (port));
     return result;
 }
 
 
-void outw (unsigned short port, unsigned short data) {
-    asm("out %%ax, %%dx" : : "a" (data), "d" (port));
+void outw (uint16_t port, uint16_t data) {
+    asm volatile("out %%ax, %%dx" : : "a" (data), "d" (port));
 }
