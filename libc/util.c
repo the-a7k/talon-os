@@ -10,9 +10,9 @@ void memory_copy(char *source, char *dest, int nbytes) {
 
 
 void itoa(int num, char str[]) {
-    bool sign = 1;
+    bool is_negative = false;
     if (num < 0) {
-        sign = 0;
+        is_negative = true;
         num = num * (-1);
     }
 
@@ -24,7 +24,7 @@ void itoa(int num, char str[]) {
     }
     while (num != 0);
 
-    if (sign == 0) {
+    if (is_negative) {
        str[i++] = '-'; 
     }
 

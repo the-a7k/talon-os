@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-size_t strlen(char* str);
-void strrev(char* str);
+size_t strlen(char *str);
+void strrev(char *str);
 
 #endif

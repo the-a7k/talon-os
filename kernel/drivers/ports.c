@@ -1,7 +1,7 @@
 #include "ports.h"
 
-//  Read a byte from the specified port
 
+//  Read a byte from the specified port
 uint8_t inb (uint16_t port) {
     unsigned char result;
     asm("in %%dx, %%al" : "=a" (result) : "d" (port));
