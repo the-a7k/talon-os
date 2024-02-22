@@ -2,7 +2,9 @@
 #include "idt.h"
 #include "../drivers/tty.h"
 #include "../../libc/util.h"
+#include "../drivers/ports.h"
 
+isr_t interrupt_handlers[INTTERUPT_HANDLER_COUNT];
 
 void isr_setup() {
     set_idt_gate(0, (uint32_t)isr0);
@@ -38,57 +40,99 @@ void isr_setup() {
     set_idt_gate(30, (uint32_t)isr30);
     set_idt_gate(31, (uint32_t)isr31);
 
+    // Remaping the PIC
+    outb(0x20, 0x11);
+    outb(0xA0, 0x11);
+    outb(0x21, 0x20);
+    outb(0xA1, 0x28);
+    outb(0x21, 0x04);
+    outb(0xA1, 0x02);
+    outb(0x21, 0x01);
+    outb(0xA1, 0x01);
+    outb(0x21, 0x0);
+    outb(0xA1, 0x0); 
+
+    set_idt_gate(32, (uint32_t)irq0);
+    set_idt_gate(33, (uint32_t)irq1);
+    set_idt_gate(34, (uint32_t)irq2);
+    set_idt_gate(35, (uint32_t)irq3);
+    set_idt_gate(36, (uint32_t)irq4);
+    set_idt_gate(37, (uint32_t)irq5);
+    set_idt_gate(38, (uint32_t)irq6);
+    set_idt_gate(39, (uint32_t)irq7);
+    set_idt_gate(40, (uint32_t)irq8);
+    set_idt_gate(41, (uint32_t)irq9);
+    set_idt_gate(42, (uint32_t)irq10);
+    set_idt_gate(43, (uint32_t)irq11);
+    set_idt_gate(44, (uint32_t)irq12);
+    set_idt_gate(45, (uint32_t)irq13);
+    set_idt_gate(46, (uint32_t)irq14);
+    set_idt_gate(47, (uint32_t)irq15);
+
     set_idt(); // Load with ASM
 }
 
-/* To print the message which defines every exception */
-char *exception_messages[] = {
-    "Division By Zero",
-    "Debug",
-    "Non Maskable Interrupt",
-    "Breakpoint",
-    "Into Detected Overflow",
-    "Out of Bounds",
-    "Invalid Opcode",
-    "No Coprocessor",
 
-    "Double Fault",
-    "Coprocessor Segment Overrun",
-    "Bad TSS",
-    "Segment Not Present",
-    "Stack Fault",
-    "General Protection Fault",
-    "Page Fault",
-    "Unknown Interrupt",
-
-    "Coprocessor Fault",
-    "Alignment Check",
-    "Machine Check",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved"
-};
-
-
-void isr_handler(registers_t reg) {
-    char int_num[3];
-    itoa(reg.int_num, int_num);
+void isr_handler(registers_t *reg) {
+    char *exception_msg[] = {
+        "Division By Zero",
+        "Debug",
+        "Non Maskable Interrupt",
+        "Breakpoint",
+        "Into Detected Overflow",
+        "Out of Bounds",
+        "Invalid Opcode",
+        "No Coprocessor",
+        "Double Fault",
+        "Coprocessor Segment Overrun",
+        "Bad TSS",
+        "Segment Not Present",
+        "Stack Fault",
+        "General Protection Fault",
+        "Page Fault",
+        "Unknown Interrupt",
+        "Coprocessor Fault",
+        "Alignment Check",
+        "Machine Check",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved"
+    };
+    
+    char int_count[4];
+    itoa(reg->int_num, int_count);
 
     kprint_color("\nInterrupt executed: ", BLACK, RED);
-    kprint_color(exception_messages[reg.int_num], BLACK, RED);
+    kprint_color(exception_msg[reg->int_num], BLACK, RED);
     kprint_color(" (int ", BLACK, PINK);
-    kprint_color(int_num, BLACK, PINK);
+    kprint_color(int_count, BLACK, PINK);
     kprint_color(")\n", BLACK, PINK);
-    
+}
+
+
+void register_interrupt_handler(uint8_t n, isr_t handler) {
+    interrupt_handlers[n] = handler;
+}
+
+
+void irq_handler(registers_t *reg) {
+    if (reg->int_num >= 40) {
+        outb(0xA0, 0x20);  // Slave
+    }
+    outb(0x20, 0x20);  // Master
+
+    if (interrupt_handlers[reg->int_num] != 0) {
+        isr_t handler = interrupt_handlers[reg->int_num];
+        handler(reg);
+    }
 }

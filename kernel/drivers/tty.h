@@ -14,6 +14,7 @@
 #define VGA_HIGH_BYTE 14
 #define VGA_LOW_BYTE 15
 
+#define SHELL_PREFIX "@test> "
 
 enum COLORS_16 {
     BLACK,
@@ -42,6 +43,7 @@ void kprint(char *str);
 void error_msg(char *reason);
 
 // Screen clearing
+void clear_cell(uint8_t col, uint8_t row);
 void clear_row(uint8_t row);
 void clear_screen();
 

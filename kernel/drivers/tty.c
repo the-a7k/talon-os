@@ -3,8 +3,6 @@
 #include "ports.h"
 #include "../../libc/util.h"
 
-
-
 void write_cell(char c, uint8_t col, uint8_t row, uint8_t bg, uint8_t fg) {
     volatile uint8_t *vga_buffer = (uint8_t*) VIDEO_MEMORY;
     uint16_t pos = calc_pos(col, row) / 2;
@@ -19,9 +17,9 @@ void kprint_color(char *str, uint8_t bg, uint8_t fg) {
         uint16_t pos = get_cursor_pos(); 
         bool cursor_overflow = false;
 
-        if (pos >= ROW_SIZE * COL_SIZE * 2) {
+        if (pos >= (ROW_SIZE * COL_SIZE * 2) -1) {
             scroll();
-            pos -= 2 * COL_SIZE;
+            pos = get_cursor_pos();
             bool cursor_overflow = true;
         }
 
@@ -29,13 +27,10 @@ void kprint_color(char *str, uint8_t bg, uint8_t fg) {
             if (!cursor_overflow) {
                 newline();
             }
-                
         }
-
         else if (str[i] == '\t') {
             tab();
         }
-
         else {
             uint8_t col = calc_col(pos);
             uint8_t row = calc_row(pos);
@@ -49,11 +44,7 @@ void kprint_color(char *str, uint8_t bg, uint8_t fg) {
 
 
 void kprint(char *str) {
-    kprint_color(
-        str, 
-        BLACK, 
-        LIGHT_GREY
-    );
+    kprint_color(str, BLACK, LIGHT_GREY);
 }
 
 
@@ -64,9 +55,14 @@ void error_msg(char *reason) {
 }
 
 
+void clear_cell(uint8_t col, uint8_t row) {
+    write_cell(0, col, row, BLACK, LIGHT_GREY);
+}
+
+
 void clear_row(uint8_t row) {
     for (size_t x = 0; x < COL_SIZE; x++) {
-        write_cell(0, x, row, BLACK, LIGHT_GREY);
+        clear_cell(x, row);
     }
 } 
 
@@ -87,7 +83,6 @@ void newline() {
     else {
         move_cursor(0, current_row+1);
     }
-    
 }
 
 
@@ -115,6 +110,7 @@ bool pos_valid(uint8_t col, uint8_t row) {
     return (col < COL_SIZE) && (row < ROW_SIZE);
 }
 
+
 uint16_t calc_pos(uint8_t col, uint8_t row) {
     return 2 * (row * COL_SIZE + col); 
 }
@@ -132,19 +128,29 @@ uint8_t calc_row(uint16_t pos) {
 
 void cursor_advance() {
     uint16_t pos = get_cursor_pos() + 2;
-    move_cursor(
-        calc_col(pos), 
-        calc_row(pos)
-    );
+    if ((pos / 2) >= (COL_SIZE * ROW_SIZE)) {
+        scroll();
+    }
+    else {
+        move_cursor(
+            calc_col(pos), 
+            calc_row(pos)
+        );
+    }
 }
 
 
 void cursor_retreat() {
-    uint16_t pos = get_cursor_pos() - 2;
-    move_cursor(
-        calc_col(pos), 
-        calc_row(pos)
-    );
+    uint16_t pos = get_cursor_pos();
+    if (pos == 0) {
+        move_cursor(0,0);
+    }
+    else {
+        move_cursor(
+            calc_col(pos-2), 
+            calc_row(pos-2)
+        );
+    }
 }
 
 
@@ -158,10 +164,9 @@ bool cursor_valid() {
 
 void move_cursor(uint8_t col, uint8_t row) {
     if (!cursor_valid()) {
-        move_cursor(0,0);
-        error_msg("Cursor out of bounds (position set to 0)");
+        clear_screen();
+        error_msg("Cursor out of bounds (video memory reset)");
     }
-
     else if (cursor_valid() && !pos_valid(col, row)) {
         error_msg("Illegal cursor position");
         move_cursor(
@@ -169,7 +174,6 @@ void move_cursor(uint8_t col, uint8_t row) {
             calc_row(get_cursor_pos())
         );
     }
-
     else {
         uint16_t pos = calc_pos(col, row) / 2;
         outb(VGA_ADDRESS_PORT, VGA_HIGH_BYTE);

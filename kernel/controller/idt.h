@@ -7,8 +7,6 @@
 #define KERNEL_CS_OFFSET 0x08
 #define IDT_ENTRIES 256
 
-#define low_16(address) (uint16_t)((address) & 0xFFFF)
-#define high_16(address) (uint16_t)(((address) >> 16) & 0xFFFF)
 
 /* How every interrupt gate (handler) is defined */
 typedef struct {
