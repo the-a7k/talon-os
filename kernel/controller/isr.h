@@ -55,7 +55,6 @@ extern void isr29();
 extern void isr30();
 extern void isr31();
 
-/* IRQ definitions */
 extern void irq0();
 extern void irq1();
 extern void irq2();
@@ -74,7 +73,6 @@ extern void irq14();
 extern void irq15();
 
 
-/* Struct which aggregates many registers */
 typedef struct {
    uint32_t ds; /* Data segment selector */
    uint32_t edi, esi, ebp, useless, ebx, edx, ecx, eax; /* Pushed by pusha */
@@ -87,5 +85,6 @@ void isr_setup();
 void isr_handler(registers_t *r);
 typedef void (*isr_t)(registers_t*);
 void register_interrupt_handler(uint8_t n, isr_t handler);
+void irq_setup();
 
 #endif

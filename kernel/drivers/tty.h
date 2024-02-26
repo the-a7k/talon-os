@@ -2,19 +2,7 @@
 #define _TTY_H_
 
 #include <stdint.h>
-#include <stddef.h>
 #include <stdbool.h>
-
-#define COL_SIZE 80
-#define ROW_SIZE 25
-
-#define VIDEO_MEMORY 0xb8000
-#define VGA_ADDRESS_PORT 0x3d4
-#define VGA_DATA_PORT 0x3d5
-#define VGA_HIGH_BYTE 14
-#define VGA_LOW_BYTE 15
-
-#define SHELL_PREFIX "@test> "
 
 enum COLORS_16 {
     BLACK,
@@ -53,6 +41,7 @@ void tab();
 void scroll();
 
 // Screen position calculations
+uint16_t calc_memory_pos(uint8_t col, uint8_t row);
 uint16_t calc_pos(uint8_t col, uint8_t row);
 uint8_t calc_row(uint16_t pos);
 uint8_t calc_col(uint16_t pos);

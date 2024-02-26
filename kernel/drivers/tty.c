@@ -1,13 +1,21 @@
-#include <stdbool.h>
+#include <stddef.h>
 #include "tty.h"
 #include "ports.h"
 #include "../../libc/util.h"
 
+#define COL_SIZE 80
+#define ROW_SIZE 25
+#define VIDEO_MEMORY 0xb8000
+#define VGA_ADDRESS_PORT 0x3d4
+#define VGA_DATA_PORT 0x3d5
+#define VGA_HIGH_BYTE 14
+#define VGA_LOW_BYTE 15
+
 void write_cell(char c, uint8_t col, uint8_t row, uint8_t bg, uint8_t fg) {
     volatile uint8_t *vga_buffer = (uint8_t*) VIDEO_MEMORY;
-    uint16_t pos = calc_pos(col, row) / 2;
-    vga_buffer[pos * 2] = c;
-    vga_buffer[pos * 2 + 1] = ((bg & 0x0F) << 4) | (fg & 0x0F);
+    uint16_t pos = calc_memory_pos(col, row);
+    vga_buffer[pos] = c;
+    vga_buffer[pos + 1] = ((bg & 0x0F) << 4) | (fg & 0x0F);
 }
 
 
@@ -17,7 +25,7 @@ void kprint_color(char *str, uint8_t bg, uint8_t fg) {
         uint16_t pos = get_cursor_pos(); 
         bool cursor_overflow = false;
 
-        if (pos >= (ROW_SIZE * COL_SIZE * 2) -1) {
+        if (pos >= (ROW_SIZE * COL_SIZE * 2) - 1) {
             scroll();
             pos = get_cursor_pos();
             bool cursor_overflow = true;
@@ -64,7 +72,7 @@ void clear_row(uint8_t row) {
     for (size_t x = 0; x < COL_SIZE; x++) {
         clear_cell(x, row);
     }
-} 
+}
 
 
 void clear_screen() {
@@ -81,7 +89,7 @@ void newline() {
         scroll();
     }
     else {
-        move_cursor(0, current_row+1);
+        move_cursor(0, current_row + 1);
     }
 }
 
@@ -96,8 +104,8 @@ void tab() {
 void scroll() {
     for (size_t i = 1; i < ROW_SIZE; i++) {
         memory_copy(
-            calc_pos(0, i) + VIDEO_MEMORY,
-            calc_pos(0, i - 1) + VIDEO_MEMORY,
+            calc_memory_pos(0, i) + VIDEO_MEMORY,
+            calc_memory_pos(0, i - 1) + VIDEO_MEMORY,
             COL_SIZE * 2
         );
     }
@@ -111,8 +119,13 @@ bool pos_valid(uint8_t col, uint8_t row) {
 }
 
 
+uint16_t calc_memory_pos(uint8_t col, uint8_t row) {
+    return 2 * (row * COL_SIZE + col);  // Cell location in video memory
+}
+
+
 uint16_t calc_pos(uint8_t col, uint8_t row) {
-    return 2 * (row * COL_SIZE + col); 
+    return row * COL_SIZE + col;    // Coordinates of a cell
 }
 
 
@@ -142,10 +155,7 @@ void cursor_advance() {
 
 void cursor_retreat() {
     uint16_t pos = get_cursor_pos();
-    if (pos == 0) {
-        move_cursor(0,0);
-    }
-    else {
+    if (pos != 0) {
         move_cursor(
             calc_col(pos-2), 
             calc_row(pos-2)
@@ -175,7 +185,7 @@ void move_cursor(uint8_t col, uint8_t row) {
         );
     }
     else {
-        uint16_t pos = calc_pos(col, row) / 2;
+        uint16_t pos = calc_pos(col, row);
         outb(VGA_ADDRESS_PORT, VGA_HIGH_BYTE);
         outb(VGA_DATA_PORT, (uint8_t)(pos >> 8));
         outb(VGA_ADDRESS_PORT, VGA_LOW_BYTE);

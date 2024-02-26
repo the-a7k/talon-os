@@ -1,8 +1,10 @@
 #include "isr.h"
 #include "idt.h"
+#include "timer.h"
+#include "../drivers/keyboard.h"
 #include "../drivers/tty.h"
-#include "../../libc/util.h"
 #include "../drivers/ports.h"
+#include "../../libc/util.h"
 
 isr_t interrupt_handlers[INTTERUPT_HANDLER_COUNT];
 
@@ -108,10 +110,9 @@ void isr_handler(registers_t *reg) {
         "Reserved",
         "Reserved"
     };
-    
+
     char int_count[4];
     itoa(reg->int_num, int_count);
-
     kprint_color("\nInterrupt executed: ", BLACK, RED);
     kprint_color(exception_msg[reg->int_num], BLACK, RED);
     kprint_color(" (int ", BLACK, PINK);
@@ -135,4 +136,11 @@ void irq_handler(registers_t *reg) {
         isr_t handler = interrupt_handlers[reg->int_num];
         handler(reg);
     }
+}
+
+
+void irq_setup() {
+    asm volatile("sti");    // Enabling interrupts
+    init_timer(50);         // IRQ 01 timer
+    init_keyboard();        // IRQ 02 keyboard
 }

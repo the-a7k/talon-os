@@ -2,23 +2,20 @@
 [extern isr_handler]
 [extern irq_handler]
 
-
 isr_common_stub:
-    ; 1. Save CPU state
 	pusha           ; Pushes edi,esi,ebp,esp,ebx,edx,ecx,eax
 	mov ax, ds      ; Lower 16-bits of eax = ds.
 	push eax        ; Save the data segment descriptor
-	mov ax, 0x10    ; kernel data segment descriptor
+	mov ax, 0x10    ; Kernel data segment descriptor
 	mov ds, ax
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
-	push esp ; registers_t *r
+	push esp
 
     cld
 	call isr_handler
 	
-    ; 3. Restore state
 	pop eax 
     pop eax
 	mov ds, ax
@@ -26,7 +23,7 @@ isr_common_stub:
 	mov fs, ax
 	mov gs, ax
 	popa
-	add esp, 8 ; Cleans up the pushed error code and pushed ISR number
+	add esp, 8      ; Cleans up the pushed error code and pushed ISR number
 	iret
 
 
@@ -41,8 +38,8 @@ irq_common_stub:
     mov gs, ax
     push esp
     cld
-    call irq_handler   ; Different than the ISR code
-    pop ebx            ; Different than the ISR code
+    call irq_handler
+    pop ebx
     pop ebx
     mov ds, bx
     mov es, bx
