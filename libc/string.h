@@ -8,5 +8,7 @@ void strrev(char *str);
 void strcat(char *dest, const char *source);
 void charcat(char *str, char to_add);
 void strpop(char *str);
+void strtolower(char *str);
+void strtoupper(char *str);
 
 #endif

@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-#define INTTERUPT_HANDLER_COUNT 256
-
 #define IRQ0 32
 #define IRQ1 33
 #define IRQ2 34

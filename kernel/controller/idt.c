@@ -1,5 +1,8 @@
 #include "idt.h"
 
+#define KERNEL_CS_OFFSET 0x08
+#define IDT_ENTRIES 256
+
 idt_entry_t idt[IDT_ENTRIES];
 idt_register_t idt_reg;
 

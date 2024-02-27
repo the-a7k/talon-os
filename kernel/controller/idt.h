@@ -3,10 +3,6 @@
 
 #include <stdint.h>
 
-// Segment selector
-#define KERNEL_CS_OFFSET 0x08
-#define IDT_ENTRIES 256
-
 
 typedef struct {
 	uint16_t    isr_low;      // The lower 16 bits of the ISR's address

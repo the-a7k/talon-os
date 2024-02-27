@@ -6,6 +6,8 @@
 #include "../drivers/ports.h"
 #include "../../libc/util.h"
 
+#define INTTERUPT_HANDLER_COUNT 256
+
 isr_t interrupt_handlers[INTTERUPT_HANDLER_COUNT];
 
 void isr_setup() {
@@ -118,6 +120,8 @@ void isr_handler(registers_t *reg) {
     kprint_color(" (int ", BLACK, PINK);
     kprint_color(int_count, BLACK, PINK);
     kprint_color(")\n", BLACK, PINK);
+    kprint_color("The system has halted!\n", BLACK, RED);
+    asm("hlt");
 }
 
 
@@ -141,6 +145,6 @@ void irq_handler(registers_t *reg) {
 
 void irq_setup() {
     asm volatile("sti");    // Enabling interrupts
-    init_timer(50);         // IRQ 01 timer
+    init_timer(1);         // IRQ 01 timer
     init_keyboard();        // IRQ 02 keyboard
 }

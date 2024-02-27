@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "string.h"
 
+#define ASCII_CAPITAL_OFFSET 32
 
 size_t strlen(const char *str) {
     size_t size = 0;
@@ -12,11 +13,11 @@ size_t strlen(const char *str) {
 
 
 void strrev(char *str) {
-    int current = 0;
-    for (int i = strlen(str)-1; i >= current; i--) {
-        char current_char = str[current];
-        str[current++] = str[i];
-        str[i] = current_char;
+    size_t end_pointer = strlen(str)-1;
+    for (size_t i = 0; i < end_pointer; i++) {
+        char current_char = str[i];
+        str[i] = str[end_pointer];
+        str[end_pointer--] = current_char;
     }
 }
 
@@ -38,4 +39,22 @@ void charcat(char *str, const char to_add) {
 void strpop(char *str) {
     size_t length = strlen(str);
     str[length-1] = '\0';
+}
+
+
+void strtolower(char *str) {
+    for (size_t i = 0; i < strlen(str); i++) {
+        if (str[i] >= 'A' && str[i] <= 'Z') {
+            str[i] += ASCII_CAPITAL_OFFSET; 
+        }
+    }
+}
+
+
+void strtoupper(char *str) {
+    for (size_t i = 0; i < strlen(str); i++) {
+        if (str[i] >= 'a' && str[i] <= 'z') {
+            str[i] -= ASCII_CAPITAL_OFFSET; 
+        }
+    }
 }

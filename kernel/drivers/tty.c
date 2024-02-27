@@ -120,7 +120,7 @@ bool pos_valid(uint8_t col, uint8_t row) {
 
 
 uint16_t calc_memory_pos(uint8_t col, uint8_t row) {
-    return 2 * (row * COL_SIZE + col);  // Cell location in video memory
+    return 2 * calc_pos(col, row);  // Cell location in video memory
 }
 
 
@@ -195,9 +195,9 @@ void move_cursor(uint8_t col, uint8_t row) {
 
 
 uint16_t get_cursor_pos() {
-    outb(VGA_ADDRESS_PORT, 14);
+    outb(VGA_ADDRESS_PORT, VGA_HIGH_BYTE);
     uint16_t pos = inb(VGA_DATA_PORT) << 8;
-    outb(VGA_ADDRESS_PORT, 15);
+    outb(VGA_ADDRESS_PORT, VGA_LOW_BYTE);
     pos += inb(VGA_DATA_PORT);
     return pos * 2;
 }
