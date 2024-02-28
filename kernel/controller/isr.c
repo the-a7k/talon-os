@@ -4,7 +4,7 @@
 #include "../drivers/keyboard.h"
 #include "../drivers/tty.h"
 #include "../drivers/ports.h"
-#include "../../libc/util.h"
+#include "../libc/util.h"
 
 #define INTTERUPT_HANDLER_COUNT 256
 

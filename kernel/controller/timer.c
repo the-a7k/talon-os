@@ -1,7 +1,7 @@
 #include "timer.h"
 #include "isr.h"
 #include "../drivers/ports.h"
-#include "../../libc/util.h"
+#include "../libc/util.h"
 
 #define PIT_FREQ 1193180
 

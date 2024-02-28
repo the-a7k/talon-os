@@ -1,4 +1,4 @@
 [bits 32]
-[extern main]   ; Linker magic
-call main
+[extern kernel_main]   ; Linker magic
+call kernel_main
 jmp $

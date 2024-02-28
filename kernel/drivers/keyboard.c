@@ -2,7 +2,7 @@
 #include "tty.h"
 #include "ports.h"
 #include "../controller/isr.h"
-#include "../../libc/string.h"
+#include "../libc/string.h"
 
 #define BACKSPACE 0x0E
 #define ENTER 0x1C
@@ -20,6 +20,7 @@ const char sc_ascii[] = {
 
 
 static void keyboard_callback(registers_t reg) {
+    // TODO: Rewrite this (close your eyes please)
     uint8_t scancode = inb(0x60);
     uppercase_check(scancode, &uppercase_flag);
 
@@ -39,7 +40,6 @@ static void keyboard_callback(registers_t reg) {
         return;
     }
     else {
-        // TODO: Improve this
         char key = sc_ascii[(uint8_t)scancode];
         if (key == '?') {
             return;

@@ -1,15 +1,14 @@
 #include <stddef.h>
 #include "tty.h"
 #include "ports.h"
-#include "../../libc/util.h"
+#include "../libc/util.h"
 
-#define COL_SIZE 80
-#define ROW_SIZE 25
 #define VIDEO_MEMORY 0xb8000
 #define VGA_ADDRESS_PORT 0x3d4
 #define VGA_DATA_PORT 0x3d5
 #define VGA_HIGH_BYTE 14
 #define VGA_LOW_BYTE 15
+
 
 void write_cell(char c, uint8_t col, uint8_t row, uint8_t bg, uint8_t fg) {
     volatile uint8_t *vga_buffer = (uint8_t*) VIDEO_MEMORY;
@@ -63,23 +62,71 @@ void error_msg(char *reason) {
 }
 
 
+bool pos_valid(uint8_t col, uint8_t row) {
+    return (col < COL_SIZE) && (row < ROW_SIZE);
+}
+
+
+uint16_t calc_memory_pos(uint8_t col, uint8_t row) {
+    return 2 * calc_pos(col, row);  // Cell location in video memory
+}
+
+
+uint16_t calc_pos(uint8_t col, uint8_t row) {
+    return row * COL_SIZE + col;    // Coordinates of a cell
+}
+
+
+uint8_t calc_col(uint16_t pos) { 
+    return (pos - (calc_row(pos) * 2 * COL_SIZE)) / 2; 
+}
+
+
+uint8_t calc_row(uint16_t pos) { 
+    return pos / (2 * COL_SIZE); 
+}
+
+
+void set_cell_color(uint8_t col, uint8_t row, uint8_t bg) {
+    if (!pos_valid(col, row)) {
+        error_msg("Screen cell location out of bounds");
+        return;
+    }
+    write_cell(0, col, row, bg, LIGHT_GREY);
+}
+
+
+void set_row_color(uint8_t row, uint8_t bg) {
+    if (!pos_valid(0, row)) {
+        error_msg("Screen row location out of bounds");
+        return;
+    }
+    for (size_t x = 0; x < COL_SIZE; x++) {
+        set_cell_color(x, row, bg);
+    }
+}
+
+
+void set_screen_color(uint8_t bg) {
+    for (size_t y = 0; y < ROW_SIZE; y++) {
+        set_row_color(y, bg);
+    }
+    move_cursor(0, 0);
+}
+
+
 void clear_cell(uint8_t col, uint8_t row) {
-    write_cell(0, col, row, BLACK, LIGHT_GREY);
+    set_cell_color(col, row, BLACK);
 }
 
 
 void clear_row(uint8_t row) {
-    for (size_t x = 0; x < COL_SIZE; x++) {
-        clear_cell(x, row);
-    }
+    set_row_color(row, BLACK);
 }
 
 
 void clear_screen() {
-    for (size_t y = 0; y < ROW_SIZE; y++) {
-        clear_row(y);
-    }
-    move_cursor(0, 0);
+    set_screen_color(BLACK);
 }
 
 
@@ -114,28 +161,17 @@ void scroll() {
 }
 
 
-bool pos_valid(uint8_t col, uint8_t row) {
-    return (col < COL_SIZE) && (row < ROW_SIZE);
+void enable_cursor(uint8_t cursor_start, uint8_t cursor_end) {
+	outb(VGA_ADDRESS_PORT, 0x0A);
+	outb(VGA_DATA_PORT, (inb(VGA_DATA_PORT) & 0xC0) | cursor_start);
+	outb(VGA_ADDRESS_PORT, 0x0B);
+	outb(VGA_DATA_PORT, (inb(VGA_DATA_PORT) & 0xE0) | cursor_end);
 }
 
 
-uint16_t calc_memory_pos(uint8_t col, uint8_t row) {
-    return 2 * calc_pos(col, row);  // Cell location in video memory
-}
-
-
-uint16_t calc_pos(uint8_t col, uint8_t row) {
-    return row * COL_SIZE + col;    // Coordinates of a cell
-}
-
-
-uint8_t calc_col(uint16_t pos) { 
-    return (pos - (calc_row(pos) * 2 * COL_SIZE)) / 2; 
-}
-
-
-uint8_t calc_row(uint16_t pos) { 
-    return pos / (2 * COL_SIZE); 
+void disable_cursor() {
+	outb(VGA_ADDRESS_PORT, 0x0A);
+	outb(VGA_DATA_PORT, 0x20);
 }
 
 
@@ -175,7 +211,7 @@ bool cursor_valid() {
 void move_cursor(uint8_t col, uint8_t row) {
     if (!cursor_valid()) {
         clear_screen();
-        error_msg("Cursor out of bounds (video memory reset)");
+        error_msg("Cursor out of bounds");
     }
     else if (cursor_valid() && !pos_valid(col, row)) {
         error_msg("Illegal cursor position");
