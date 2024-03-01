@@ -1,6 +1,6 @@
 #include "ports.h"
 
-//  Read a byte from a port
+// Read a byte from a port
 uint8_t inb (uint16_t port) {
     unsigned char result;
     asm("in %%dx, %%al" : "=a" (result) : "d" (port));
@@ -8,7 +8,7 @@ uint8_t inb (uint16_t port) {
 }
 
 
-//  Write a byte to a port
+// Write a byte to a port
 void outb (uint16_t port, uint8_t data) {
     asm volatile("out %%al, %%dx" : : "a" (data), "d" (port));
 }

@@ -19,6 +19,7 @@ const char sc_ascii[] = {
 };
 
 
+
 static void keyboard_callback(registers_t reg) {
     // TODO: Rewrite this (close your eyes please)
     uint8_t scancode = inb(0x60);

@@ -1,7 +1,7 @@
-#include <stddef.h>
 #include "tty.h"
 #include "ports.h"
 #include "../libc/util.h"
+
 
 #define VIDEO_MEMORY 0xb8000
 #define VGA_ADDRESS_PORT 0x3d4
@@ -10,9 +10,14 @@
 #define VGA_LOW_BYTE 15
 
 
+static TextRegion text_region[16];
+static size_t text_region_size = 0;
+static size_t text_region_active = 0;
+
+
 void write_cell(char c, uint8_t col, uint8_t row, uint8_t bg, uint8_t fg) {
     volatile uint8_t *vga_buffer = (uint8_t*) VIDEO_MEMORY;
-    uint16_t pos = calc_memory_pos(col, row);
+    uint16_t pos = calc_pos(col, row);
     vga_buffer[pos] = c;
     vga_buffer[pos + 1] = ((bg & 0x0F) << 4) | (fg & 0x0F);
 }
@@ -23,12 +28,14 @@ void kprint_color(char *str, uint8_t bg, uint8_t fg) {
     while (str[i] != '\0') {
         uint16_t pos = get_cursor_pos(); 
         bool cursor_overflow = false;
-
+/*
         if (pos >= (ROW_SIZE * COL_SIZE * 2) - 1) {
             scroll();
             pos = get_cursor_pos();
             bool cursor_overflow = true;
         }
+*/
+
 
         if (str[i] == '\n' || str[i] == '\r') {
             if (!cursor_overflow) {
@@ -67,13 +74,8 @@ bool pos_valid(uint8_t col, uint8_t row) {
 }
 
 
-uint16_t calc_memory_pos(uint8_t col, uint8_t row) {
-    return 2 * calc_pos(col, row);  // Cell location in video memory
-}
-
-
 uint16_t calc_pos(uint8_t col, uint8_t row) {
-    return row * COL_SIZE + col;    // Coordinates of a cell
+    return 2 * (row * COL_SIZE + col);  // For cursors: calc_pos / 2
 }
 
 
@@ -92,7 +94,7 @@ void set_cell_color(uint8_t col, uint8_t row, uint8_t bg) {
         error_msg("Screen cell location out of bounds");
         return;
     }
-    write_cell(0, col, row, bg, LIGHT_GREY);
+    write_cell(' ', col, row, bg, LIGHT_GREY);
 }
 
 
@@ -132,8 +134,10 @@ void clear_screen() {
 
 void newline() {
     uint8_t current_row = calc_row(get_cursor_pos());
+    
     if (current_row >= ROW_SIZE - 1) {
-        scroll();
+        //scroll();
+        return;
     }
     else {
         move_cursor(0, current_row + 1);
@@ -151,8 +155,8 @@ void tab() {
 void scroll() {
     for (size_t i = 1; i < ROW_SIZE; i++) {
         memory_copy(
-            calc_memory_pos(0, i) + VIDEO_MEMORY,
-            calc_memory_pos(0, i - 1) + VIDEO_MEMORY,
+            calc_pos(0, i) + VIDEO_MEMORY,
+            calc_pos(0, i - 1) + VIDEO_MEMORY,
             COL_SIZE * 2
         );
     }
@@ -176,22 +180,49 @@ void disable_cursor() {
 
 
 void cursor_advance() {
-    uint16_t pos = get_cursor_pos() + 2;
-    if ((pos / 2) >= (COL_SIZE * ROW_SIZE)) {
-        scroll();
+    uint8_t tr_current = tr_get_active();
+    uint8_t src_col = tr_get_src_col(tr_current);
+    uint8_t src_row = tr_get_src_row(tr_current);
+    uint8_t dest_col = tr_get_dest_col(tr_current);
+    uint8_t dest_row = tr_get_dest_row(tr_current);
+    uint16_t pos = tr_get_cursor(tr_current);
+
+    if (calc_col(pos) >= dest_col && calc_row(pos) >= dest_row) {
+        return;
+    }
+    else if (calc_col(pos) >= dest_col) {
+        move_cursor(
+            calc_col(src_col*2), 
+            calc_row(pos)+1
+        );
     }
     else {
         move_cursor(
-            calc_col(pos), 
-            calc_row(pos)
+            calc_col(pos+2), 
+            calc_row(pos+2)
         );
     }
 }
 
 
 void cursor_retreat() {
-    uint16_t pos = get_cursor_pos();
-    if (pos != 0) {
+    uint8_t tr_current = tr_get_active();
+    uint8_t src_col = tr_get_src_col(tr_current);
+    uint8_t src_row = tr_get_src_row(tr_current);
+    uint8_t dest_col = tr_get_dest_col(tr_current);
+    uint8_t dest_row = tr_get_dest_row(tr_current);
+    uint16_t pos = tr_get_cursor(tr_current);
+
+    if (calc_col(pos) <= src_col && calc_row(pos) <= src_row) {
+        return;
+    }
+    if (calc_col(pos) <= src_col) {
+        move_cursor(
+            calc_col(dest_col*2), 
+            calc_row(pos)-1
+        );
+    }
+    else {
         move_cursor(
             calc_col(pos-2), 
             calc_row(pos-2)
@@ -221,11 +252,12 @@ void move_cursor(uint8_t col, uint8_t row) {
         );
     }
     else {
-        uint16_t pos = calc_pos(col, row);
+        uint16_t pos = calc_pos(col, row) / 2;
         outb(VGA_ADDRESS_PORT, VGA_HIGH_BYTE);
         outb(VGA_DATA_PORT, (uint8_t)(pos >> 8));
         outb(VGA_ADDRESS_PORT, VGA_LOW_BYTE);
         outb(VGA_DATA_PORT, (uint8_t)(pos & 0xff));
+        text_region[tr_get_active()].cursor_location = pos * 2;
     }
 }
 
@@ -236,4 +268,69 @@ uint16_t get_cursor_pos() {
     outb(VGA_ADDRESS_PORT, VGA_LOW_BYTE);
     pos += inb(VGA_DATA_PORT);
     return pos * 2;
+}
+
+
+void tty_setup() {
+    create_text_region(0, 0, COL_SIZE - 1, ROW_SIZE - 1, false);
+    text_region_activate(0);
+    clear_screen();
+}
+
+
+void create_text_region(uint8_t src_col, uint8_t src_row, uint8_t dest_col, uint8_t dest_row, bool is_scrollable) {
+    text_region[text_region_size].src_col = src_col;
+    text_region[text_region_size].src_row = src_row;
+    text_region[text_region_size].dest_col = dest_col;
+    text_region[text_region_size].dest_row = dest_row;
+    text_region[text_region_size].cursor_location = calc_pos(src_col, src_row);
+    text_region[text_region_size].is_scrollable = is_scrollable;
+    text_region[text_region_size].is_active = false;
+    text_region_size++;
+}
+
+
+void text_region_activate(size_t num) {
+    text_region[tr_get_active()].is_active = false;
+    text_region[num].is_active = true;
+    text_region_active = num;
+    move_cursor(
+        calc_col(tr_get_cursor(num)),
+        calc_row(tr_get_cursor(num))
+    );
+}
+
+
+uint8_t tr_get_src_col(size_t num) {
+    return text_region[num].src_col;
+}
+
+
+uint8_t tr_get_src_row(size_t num) {
+    return text_region[num].src_row;
+}
+
+
+uint8_t tr_get_dest_col(size_t num) {
+    return text_region[num].dest_col;
+}
+
+
+uint8_t tr_get_dest_row(size_t num) {
+    return text_region[num].dest_row;
+}
+
+
+uint16_t tr_get_cursor(size_t num) {
+    return text_region[num].cursor_location;
+}
+
+
+size_t tr_get_size() {
+    return text_region_size;
+}
+
+
+size_t tr_get_active() {
+    return text_region_active;
 }

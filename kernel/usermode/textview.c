@@ -23,7 +23,7 @@ const uint8_t ascii_single_line[] = {
 };
 
 
-void tm_set_background(uint8_t color) {
+void tm_background(uint8_t color) {
     set_screen_color(color);
 }
 
@@ -37,7 +37,7 @@ void tm_rectangle(uint8_t src_col, uint8_t src_row, uint8_t dest_col, uint8_t de
 }
 
 
-void tm_create_shadow(uint8_t src_col, uint8_t src_row, uint8_t dest_col, uint8_t dest_row) {
+void tm_shadow(uint8_t src_col, uint8_t src_row, uint8_t dest_col, uint8_t dest_row) {
     tm_rectangle(src_col+1, src_row+1, dest_col+2, dest_row+1, BLACK);
 }
 
@@ -46,7 +46,7 @@ void tm_navigation(uint8_t row, uint8_t bg, uint8_t options_fg, char* options[],
     set_row_color(row, bg);
     uint8_t current_col = 1;
     for (size_t i = 0; i < total_options; i++) {
-        tm_set_text(options[i], current_col, row, bg, options_fg);
+        tm_label(options[i], current_col, row, bg, options_fg);
         current_col += strlen(options[i]) + TAB_SIZE;
     }
 }
@@ -82,12 +82,12 @@ void tm_plane(uint8_t src_col, uint8_t src_row, uint8_t dest_col, uint8_t dest_r
 
 
 void tm_window(uint8_t src_col, uint8_t src_row, uint8_t dest_col, uint8_t dest_row, uint8_t bg, uint8_t line_color, bool single_line) {
-    tm_create_shadow(src_col, src_row, dest_col, dest_row);
+    tm_shadow(src_col, src_row, dest_col, dest_row);
     tm_plane(src_col, src_row, dest_col, dest_row, bg, line_color, single_line);
 }
 
 
-void tm_set_text(char *str, uint8_t col, uint8_t row, uint8_t bg, uint8_t fg) {
+void tm_label(char *str, uint8_t col, uint8_t row, uint8_t bg, uint8_t fg) {
     size_t i = 0;
     while (str[i] != '\0') {
         if (calc_pos(col,row) >= (ROW_SIZE * COL_SIZE * 2) - 1) {
