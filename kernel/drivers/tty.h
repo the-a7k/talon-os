@@ -33,7 +33,7 @@ typedef struct {
     uint8_t src_row;
     uint8_t dest_col;
     uint8_t dest_row;
-    uint16_t cursor_location;
+    uint16_t cursor_pos;
     bool is_scrollable;
     bool is_active;
 } TextRegion;
@@ -49,7 +49,7 @@ void error_msg(char *reason);
 uint16_t calc_pos(uint8_t col, uint8_t row);
 uint8_t calc_row(uint16_t pos);
 uint8_t calc_col(uint16_t pos);
-bool    pos_valid(uint8_t col, uint8_t row);
+bool pos_valid(uint8_t col, uint8_t row);
 
 // Screen color manipulation and screen clearing
 void set_cell_color(uint8_t col, uint8_t row, uint8_t bg);
@@ -79,6 +79,7 @@ void create_text_region(uint8_t src_col, uint8_t src_row, uint8_t dest_col, uint
 void text_region_activate(size_t num);
 
 // Text region getters (shortened to 'tr')
+TextRegion* tr_get(size_t num);
 size_t tr_get_size();
 size_t tr_get_active();
 uint8_t tr_get_src_col(size_t num);

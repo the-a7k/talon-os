@@ -19,7 +19,7 @@ typedef struct {
 } __attribute__((packed)) idt_register_t;
 
 
-void set_idt_gate(int n, uint32_t handler);
+void set_idt_gate(uint8_t num, uint32_t handler);
 void set_idt();
 
 #endif

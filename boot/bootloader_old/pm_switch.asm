@@ -1,5 +1,4 @@
 [bits 16]
-
 pm_switch:
     cli                         ; Disabling BIOS interrupts
     lgdt [gdt_descriptor]
@@ -10,7 +9,6 @@ pm_switch:
 
 
 [bits 32]
-
 pm_start:
     mov ax, DATA_SEG
     mov ds, ax
@@ -20,4 +18,4 @@ pm_start:
     mov gs, ax
     mov ebp, 0x90000
     mov esp, ebp
-    call PM_BEGIN
+    call pm_begin

@@ -78,49 +78,11 @@ void isr_setup() {
 
 
 void isr_handler(registers_t *reg) {
-    char *exception_msg[] = {
-        "Division By Zero",
-        "Debug",
-        "Non Maskable Interrupt",
-        "Breakpoint",
-        "Into Detected Overflow",
-        "Out of Bounds",
-        "Invalid Opcode",
-        "No Coprocessor",
-        "Double Fault",
-        "Coprocessor Segment Overrun",
-        "Bad TSS",
-        "Segment Not Present",
-        "Stack Fault",
-        "General Protection Fault",
-        "Page Fault",
-        "Unknown Interrupt",
-        "Coprocessor Fault",
-        "Alignment Check",
-        "Machine Check",
-        "Reserved",
-        "Reserved",
-        "Reserved",
-        "Reserved",
-        "Reserved",
-        "Reserved",
-        "Reserved",
-        "Reserved",
-        "Reserved",
-        "Reserved",
-        "Reserved",
-        "Reserved",
-        "Reserved"
-    };
-
-    char int_count[4];
+    char int_count[8];
     itoa(reg->int_num, int_count);
-    kprint_color("\nInterrupt executed: ", BLACK, RED);
-    kprint_color(exception_msg[reg->int_num], BLACK, RED);
-    kprint_color(" (int ", BLACK, PINK);
-    kprint_color(int_count, BLACK, PINK);
-    kprint_color(")\n", BLACK, PINK);
-    kprint_color("The system has halted!\n", BLACK, RED);
+    kprint_color("The system has halted! (int ", BLACK, RED);
+    kprint_color(int_count, BLACK, RED);
+    kprint_color(")\n", BLACK, RED);
     asm("hlt");
 }
 
@@ -144,7 +106,7 @@ void irq_handler(registers_t *reg) {
 
 
 void irq_setup() {
-    asm volatile("sti");    // Enabling interrupts
+    asm volatile("sti");   // Enabling interrupts
     init_timer(1);         // IRQ 01 timer
-    init_keyboard();        // IRQ 02 keyboard
+    init_keyboard();       // IRQ 02 keyboard
 }

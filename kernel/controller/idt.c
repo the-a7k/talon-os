@@ -1,17 +1,17 @@
 #include "idt.h"
 
 #define KERNEL_CS_OFFSET 0x08
-#define IDT_ENTRIES 256
+#define IDT_ENTRIES 255
 
 idt_entry_t idt[IDT_ENTRIES];
 idt_register_t idt_reg;
 
-void set_idt_gate(int n, uint32_t handler) {
-    idt[n].isr_low = (uint32_t)handler & 0xFFFF;
-    idt[n].kernel_cs = KERNEL_CS_OFFSET;
-    idt[n].reserved = 0;
-    idt[n].attributes = 0x8E; 
-    idt[n].isr_high = (uint32_t)handler >> 16;
+void set_idt_gate(uint8_t num, uint32_t handler) {
+    idt[num].isr_low = (uint32_t)handler & 0xFFFF;
+    idt[num].kernel_cs = KERNEL_CS_OFFSET;
+    idt[num].reserved = 0;
+    idt[num].attributes = 0x8E; 
+    idt[num].isr_high = (uint32_t)handler >> 16;
 }
 
 void set_idt() {

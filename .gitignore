@@ -4,4 +4,6 @@
 *.dis
 *.elf
 *.sym
+*.old
 .DS_STORE
+build/

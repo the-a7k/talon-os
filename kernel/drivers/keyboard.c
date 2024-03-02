@@ -11,6 +11,8 @@
 
 static char key_buffer[KEYBOARD_BUFFER_LENGTH];
 static bool uppercase_flag = false;
+
+
 const char sc_ascii[] = {
     '?', '?', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '?', 
     '?', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '?', '?', 
@@ -19,37 +21,27 @@ const char sc_ascii[] = {
 };
 
 
-
 static void keyboard_callback(registers_t reg) {
-    // TODO: Rewrite this (close your eyes please)
     uint8_t scancode = inb(0x60);
-    uppercase_check(scancode, &uppercase_flag);
+    write_cell(sc_ascii[45],scancode,0,50,0);
 
     if (scancode == BACKSPACE) {
+        /*
         cursor_retreat();
         clear_cell(
             calc_col(get_cursor_pos()),
             calc_row(get_cursor_pos())
         );
         strpop(key_buffer);
+        */
     }
     else if (scancode == ENTER) {
         newline();
         // TODO: Handle user input
     }
-    else if (strlen(key_buffer) > KEYBOARD_BUFFER_LENGTH || scancode > SC_LAST_HANDLE) {
-        return;
-    }
+
     else {
-        char key = sc_ascii[(uint8_t)scancode];
-        if (key == '?') {
-            return;
-        }
-        char output[2] = {key, '\0'};
-        charcat(key_buffer, key);
-        if (uppercase_flag) {
-            strtoupper(output);
-        }
+        char output[2] = {sc_ascii[(uint8_t)scancode], '\0'};
         kprint(output);
     }
 }

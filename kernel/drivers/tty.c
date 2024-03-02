@@ -28,27 +28,27 @@ void kprint_color(char *str, uint8_t bg, uint8_t fg) {
     while (str[i] != '\0') {
         uint16_t pos = get_cursor_pos(); 
         bool cursor_overflow = false;
-/*
+
+        /*
         if (pos >= (ROW_SIZE * COL_SIZE * 2) - 1) {
             scroll();
             pos = get_cursor_pos();
             bool cursor_overflow = true;
         }
-*/
-
+        */
 
         if (str[i] == '\n' || str[i] == '\r') {
             if (!cursor_overflow) {
                 newline();
+                write_cell('L',20,0,50,0);
             }
         }
         else if (str[i] == '\t') {
             tab();
+            write_cell('L',10,0,50,0);
         }
         else {
-            uint8_t col = calc_col(pos);
-            uint8_t row = calc_row(pos);
-            write_cell(str[i], col, row, bg, fg);
+            write_cell(str[i], calc_col(pos), calc_row(pos), bg, fg);
             cursor_advance();
             pos += 2;
         }
@@ -113,7 +113,6 @@ void set_screen_color(uint8_t bg) {
     for (size_t y = 0; y < ROW_SIZE; y++) {
         set_row_color(y, bg);
     }
-    move_cursor(0, 0);
 }
 
 
@@ -133,14 +132,17 @@ void clear_screen() {
 
 
 void newline() {
-    uint8_t current_row = calc_row(get_cursor_pos());
-    
-    if (current_row >= ROW_SIZE - 1) {
+    TextRegion *tr = tr_get(tr_get_active());
+    /*
+    if (calc_row(tr->cursor_pos) >= ROW_SIZE - 1) {
         //scroll();
         return;
     }
-    else {
-        move_cursor(0, current_row + 1);
+    */
+    if (calc_row(tr->cursor_pos) < tr->dest_row) {
+        move_cursor(
+            tr->src_col, 
+            calc_row(tr->cursor_pos) + 1);
     }
 }
 
@@ -180,52 +182,42 @@ void disable_cursor() {
 
 
 void cursor_advance() {
-    uint8_t tr_current = tr_get_active();
-    uint8_t src_col = tr_get_src_col(tr_current);
-    uint8_t src_row = tr_get_src_row(tr_current);
-    uint8_t dest_col = tr_get_dest_col(tr_current);
-    uint8_t dest_row = tr_get_dest_row(tr_current);
-    uint16_t pos = tr_get_cursor(tr_current);
+    TextRegion *tr = tr_get(tr_get_active());
 
-    if (calc_col(pos) >= dest_col && calc_row(pos) >= dest_row) {
+    if (calc_col(tr->cursor_pos) >= tr->dest_col && calc_row(tr->cursor_pos) >= tr->dest_row) {
         return;
     }
-    else if (calc_col(pos) >= dest_col) {
+    else if (calc_col(tr->cursor_pos) >= tr->dest_col) {
         move_cursor(
-            calc_col(src_col*2), 
-            calc_row(pos)+1
+            calc_col(tr->src_col*2), 
+            calc_row(tr->cursor_pos)+1
         );
     }
     else {
         move_cursor(
-            calc_col(pos+2), 
-            calc_row(pos+2)
+            calc_col(tr->cursor_pos+2), 
+            calc_row(tr->cursor_pos+2)
         );
     }
 }
 
 
 void cursor_retreat() {
-    uint8_t tr_current = tr_get_active();
-    uint8_t src_col = tr_get_src_col(tr_current);
-    uint8_t src_row = tr_get_src_row(tr_current);
-    uint8_t dest_col = tr_get_dest_col(tr_current);
-    uint8_t dest_row = tr_get_dest_row(tr_current);
-    uint16_t pos = tr_get_cursor(tr_current);
+    TextRegion *tr = tr_get(tr_get_active());
 
-    if (calc_col(pos) <= src_col && calc_row(pos) <= src_row) {
+    if (calc_col(tr->cursor_pos) <= tr->src_col && calc_row(tr->cursor_pos) <= tr->src_row) {
         return;
     }
-    if (calc_col(pos) <= src_col) {
+    if (calc_col(tr->cursor_pos) <= tr->src_col) {
         move_cursor(
-            calc_col(dest_col*2), 
-            calc_row(pos)-1
+            calc_col(tr->dest_col*2), 
+            calc_row(tr->cursor_pos)-1
         );
     }
     else {
         move_cursor(
-            calc_col(pos-2), 
-            calc_row(pos-2)
+            calc_col(tr->cursor_pos-2), 
+            calc_row(tr->cursor_pos-2)
         );
     }
 }
@@ -257,7 +249,7 @@ void move_cursor(uint8_t col, uint8_t row) {
         outb(VGA_DATA_PORT, (uint8_t)(pos >> 8));
         outb(VGA_ADDRESS_PORT, VGA_LOW_BYTE);
         outb(VGA_DATA_PORT, (uint8_t)(pos & 0xff));
-        text_region[tr_get_active()].cursor_location = pos * 2;
+        text_region[tr_get_active()].cursor_pos = pos * 2;
     }
 }
 
@@ -283,7 +275,7 @@ void create_text_region(uint8_t src_col, uint8_t src_row, uint8_t dest_col, uint
     text_region[text_region_size].src_row = src_row;
     text_region[text_region_size].dest_col = dest_col;
     text_region[text_region_size].dest_row = dest_row;
-    text_region[text_region_size].cursor_location = calc_pos(src_col, src_row);
+    text_region[text_region_size].cursor_pos = calc_pos(src_col, src_row);
     text_region[text_region_size].is_scrollable = is_scrollable;
     text_region[text_region_size].is_active = false;
     text_region_size++;
@@ -298,6 +290,11 @@ void text_region_activate(size_t num) {
         calc_col(tr_get_cursor(num)),
         calc_row(tr_get_cursor(num))
     );
+}
+
+
+TextRegion* tr_get(size_t num) {
+    return &text_region[num];
 }
 
 
@@ -322,7 +319,7 @@ uint8_t tr_get_dest_row(size_t num) {
 
 
 uint16_t tr_get_cursor(size_t num) {
-    return text_region[num].cursor_location;
+    return text_region[num].cursor_pos;
 }
 
 

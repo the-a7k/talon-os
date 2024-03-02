@@ -9,8 +9,10 @@ mov bx, RM_MSG
 call rm_asciiout
 call rm_newline
 
+call enable_a20
 call load_kernel
 call pm_switch
+
 
 %include "boot/rm_stdout.asm"
 %include "boot/disk.asm"
@@ -19,6 +21,15 @@ call pm_switch
 
 
 [bits 16]
+enable_a20:
+    cli
+    push ax
+    mov al, 0xdd
+    out 0x64, al
+    pop ax       
+    sti
+    ret 
+
 load_kernel:
     mov bx, KERNEL_OFFSET
     mov dh, 16
@@ -28,7 +39,7 @@ load_kernel:
 
 
 [bits 32]
-PM_BEGIN:
+pm_begin:
     call KERNEL_OFFSET
     jmp $
 
