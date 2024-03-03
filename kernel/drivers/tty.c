@@ -40,12 +40,10 @@ void kprint_color(char *str, uint8_t bg, uint8_t fg) {
         if (str[i] == '\n' || str[i] == '\r') {
             if (!cursor_overflow) {
                 newline();
-                write_cell('L',20,0,50,0);
             }
         }
         else if (str[i] == '\t') {
             tab();
-            write_cell('L',10,0,50,0);
         }
         else {
             write_cell(str[i], calc_col(pos), calc_row(pos), bg, fg);

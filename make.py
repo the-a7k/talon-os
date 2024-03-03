@@ -68,10 +68,10 @@ def build():
 
 
 def iso():
-	os.makedirs("build/iso/boot/grub")
-	os.system("cp grub.cfg build/iso/boot/grub")
-	os.system(f"cp {KERNEL_DEST} build/iso/boot/grub")
-	os.system("grub-mkrescue -o build/talon.iso build/iso")
+	os.makedirs(GRUB_DEST)
+	os.system(f"cp grub.cfg {GRUB_DEST}")
+	os.system(f"cp {KERNEL_DEST} {GRUB_DEST}")
+	os.system(f"grub-mkrescue -o {ISO_DEST} build/iso")
 
 
 def run():

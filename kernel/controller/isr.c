@@ -78,7 +78,7 @@ void isr_setup() {
 
 
 void isr_handler(registers_t *reg) {
-    char int_count[8];
+    char int_count[4];
     itoa(reg->int_num, int_count);
     kprint_color("The system has halted! (int ", BLACK, RED);
     kprint_color(int_count, BLACK, RED);

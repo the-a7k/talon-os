@@ -23,7 +23,6 @@ const char sc_ascii[] = {
 
 static void keyboard_callback(registers_t reg) {
     uint8_t scancode = inb(0x60);
-    write_cell(sc_ascii[45],scancode,0,50,0);
 
     if (scancode == BACKSPACE) {
         /*

@@ -1,26 +1,27 @@
 #include "drivers/tty.h"
-#include "controller/gdt.h"
 #include "controller/isr.h"
 #include "usermode/textview.h"
+#include "controller/timer.h"
 
 /* C libraries used: stdint.h, stddef.h, stdbool.h */
 
-// TODO: Update bootloader to GRUB (partially finished)
-// TODO: Fix GDT with GRUB
-// TODO: Fix IRQs with GRUB
 // TODO: Fix null byte strings not working properly
 // TODO: Fix cursor retreat on last textfield character
+// TODO: Re-implement scroll
 // TODO: Rework keyboard
+
+extern void gdt_load();  // From boot/boot.asm
+extern void idt_load();  // From boot/boot.asm
 
 
 void kernel_main() {
     tty_setup();
+    gdt_load();
+    idt_load();
     isr_setup();
-    //irq_setup();
+    irq_setup();
 
-    kprint_color("Hello, world..?", BLACK, CYAN);
 
-    /*
     char *headers[] = {
         "Menu",
         "Options",
@@ -39,7 +40,7 @@ void kernel_main() {
 
     tm_background(BLUE);
     tm_window(20,6,59,10, GREEN, BLACK, false);
-    tm_plane(2,15,35,18, LIGHT_CYAN, CYAN, true);
+    tm_rectangle(2,15,35,18, BLACK);
     tm_window(53,14,69,20, RED, PINK, false);
     tm_label(window_text, 22, 8, GREEN, WHITE);
   
@@ -54,6 +55,10 @@ void kernel_main() {
         ROW_SIZE - 1, CYAN, BLACK, footers, 
         sizeof(footers) / sizeof(footers[0])
     );
-    */
-}
 
+    create_text_region(2,15,35,18,false);
+    text_region_activate(1);
+
+    kprint("This is an interrupt test!\n");
+    asm volatile("int $10");
+}
