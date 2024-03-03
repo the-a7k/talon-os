@@ -38,6 +38,9 @@ void charcat(char *str, const char to_add) {
 
 void strpop(char *str) {
     size_t length = strlen(str);
+    if (length == 0) {
+        return;
+    }
     str[length-1] = '\0';
 }
 

@@ -296,6 +296,16 @@ TextRegion* tr_get(size_t num) {
 }
 
 
+size_t tr_get_size() {
+    return text_region_size;
+}
+
+
+size_t tr_get_active() {
+    return text_region_active;
+}
+
+
 uint8_t tr_get_src_col(size_t num) {
     return text_region[num].src_col;
 }
@@ -318,14 +328,4 @@ uint8_t tr_get_dest_row(size_t num) {
 
 uint16_t tr_get_cursor(size_t num) {
     return text_region[num].cursor_pos;
-}
-
-
-size_t tr_get_size() {
-    return text_region_size;
-}
-
-
-size_t tr_get_active() {
-    return text_region_active;
 }

@@ -5,7 +5,7 @@
 
 #define PIT_FREQ 1193180
 
-uint32_t tick = 0;
+static uint32_t tick = 0;
 
 
 static void timer_callback(registers_t reg) {
