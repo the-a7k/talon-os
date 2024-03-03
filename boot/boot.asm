@@ -9,12 +9,12 @@ section .text
 %include "boot/gdt.asm"
 
 global start
-extern kernel_main			; Defined in kernel.c
+extern kernel_main				; Defined in kernel.c
 
 start:
 	cli
 	lgdt [gdt_descriptor]
-	jmp CODE_SEG:.set_cs    ; Set CS to our 32-bit flat code selector
+	jmp CODE_SEG:.set_cs
 
 	.set_cs:
 	mov ax, DATA_SEG
@@ -23,11 +23,11 @@ start:
 	mov fs, ax
 	mov gs, ax
 	mov ss, ax
-	mov esp, stack_space	; Set stack pointer
-	call kernel_main		; Giving control to kernel
+	mov esp, stack_space		; Set stack pointer
+	call kernel_main			; Giving control to kernel
 	jmp $
 
 
 section .bss
-resb 8192					; 8KB for stack
+resb 8192						; 8KB for stack
 stack_space:

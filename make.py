@@ -53,6 +53,7 @@ def build():
     shellout(f"ld -m elf_i386 -T {LINKER_SRC} -o {KERNEL_DEST} {OBJ_DEST}boot.o {objects}")
     print(f"\n[Compilation end]\n")
 
+
 def iso():
     # Creating a bootable ISO by utilizing grub-mkrescue
     print(f"\n[ISO generation start]\n")

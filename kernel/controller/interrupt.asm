@@ -322,97 +322,97 @@ isr31:
 ; IRQ Handlers
 
 irq0:
-	cli
-	push dword 0
-	push dword 32
-	jmp irq_common_stub
+    cli
+    push dword 0
+    push dword 32
+    jmp irq_common_stub
 
 irq1:
-	cli
-	push dword 1
-	push dword 33
-	jmp irq_common_stub
+    cli
+    push dword 1
+    push dword 33
+    jmp irq_common_stub
 
 irq2:
-	cli
-	push dword 2
-	push dword 34
-	jmp irq_common_stub
+    cli
+    push dword 2
+    push dword 34
+    jmp irq_common_stub
 
 irq3:
-	cli
-	push dword 3
-	push dword 35
-	jmp irq_common_stub
+    cli
+    push dword 3
+    push dword 35
+    jmp irq_common_stub
 
 irq4:
-	cli
-	push dword 4
-	push dword 36
-	jmp irq_common_stub
+    cli
+    push dword 4
+    push dword 36
+    jmp irq_common_stub
 
 irq5:
-	cli
-	push dword 5
-	push dword 37
-	jmp irq_common_stub
+    cli
+    push dword 5
+    push dword 37
+    jmp irq_common_stub
 
 irq6:
-	cli
-	push dword 6
-	push dword 38
-	jmp irq_common_stub
+    cli
+    push dword 6
+    push dword 38
+    jmp irq_common_stub
 
 irq7:
-	cli
-	push dword 7
-	push dword 39
-	jmp irq_common_stub
+    cli
+    push dword 7
+    push dword 39
+    jmp irq_common_stub
 
 irq8:
-	cli
-	push dword 8
-	push dword 40
-	jmp irq_common_stub
+    cli
+    push dword 8
+    push dword 40
+    jmp irq_common_stub
 
 irq9:
-	cli
-	push dword 9
-	push dword 41
-	jmp irq_common_stub
+    cli
+    push dword 9
+    push dword 41
+    jmp irq_common_stub
 
 irq10:
-	cli
-	push dword 10
-	push dword 42
-	jmp irq_common_stub
+    cli
+    push dword 10
+    push dword 42
+    jmp irq_common_stub
 
 irq11:
-	cli
-	push dword 11
-	push dword 43
-	jmp irq_common_stub
+    cli
+    push dword 11
+    push dword 43
+    jmp irq_common_stub
 
 irq12:
-	cli
-	push dword 12
-	push dword 44
-	jmp irq_common_stub
+    cli
+    push dword 12
+    push dword 44
+    jmp irq_common_stub
 
 irq13:
-	cli
-	push dword 13
-	push dword 45
-	jmp irq_common_stub
+    cli
+    push dword 13
+    push dword 45
+    jmp irq_common_stub
 
 irq14:
-	cli
-	push dword 14
-	push dword 46
-	jmp irq_common_stub
+    cli
+    push dword 14
+    push dword 46
+    jmp irq_common_stub
 
 irq15:
-	cli
-	push dword 15
-	push dword 47
-	jmp irq_common_stub
+    cli
+    push dword 15
+    push dword 47
+    jmp irq_common_stub
