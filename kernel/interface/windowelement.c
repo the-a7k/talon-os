@@ -1,4 +1,4 @@
-#include "textview.h"
+#include "windowelement.h"
 #include "../drivers/tty.h"
 #include "../libc/string.h"
 
@@ -81,13 +81,14 @@ void tm_plane(uint8_t src_col, uint8_t src_row, uint8_t dest_col, uint8_t dest_r
 }
 
 
-void tm_window(uint8_t src_col, uint8_t src_row, uint8_t dest_col, uint8_t dest_row, uint8_t bg, uint8_t line_color, bool single_line) {
+void tm_popup(uint8_t src_col, uint8_t src_row, uint8_t dest_col, uint8_t dest_row, uint8_t bg, uint8_t line_color, bool single_line) {
     tm_shadow(src_col, src_row, dest_col, dest_row);
     tm_plane(src_col, src_row, dest_col, dest_row, bg, line_color, single_line);
 }
 
 
 void tm_label(char *str, uint8_t col, uint8_t row, uint8_t bg, uint8_t fg) {
+    // TODO: Rework label
     size_t i = 0;
     while (str[i] != '\0') {
         if (calc_pos(col,row) >= (ROW_SIZE * COL_SIZE * 2) - 1) {
@@ -107,4 +108,44 @@ void tm_label(char *str, uint8_t col, uint8_t row, uint8_t bg, uint8_t fg) {
         }
         i++;
     }
+}
+
+
+void generate_sample_scene() {
+    char *headers[] = {
+        "Menu",
+        "Options",
+        "Settings",
+        "Exit",
+    };
+
+    char *footers[] = {
+        "F1=Help",
+        "Enter=Execute",
+        "Esc=Cancel",
+        "Tab=Next Field",
+    };
+    
+    char* window_text = "Welcome to talonOS === Hello, world!";
+    
+    tm_background(BLUE);
+    tm_popup(20,6,59,10, GREEN, BLACK, false);
+    tm_rectangle(2,15,35,18, BLACK);
+    tm_popup(53,14,69,20, RED, PINK, false);
+    tm_label(window_text, 22, 8, GREEN, WHITE);
+
+    // Navbar
+    tm_navigation(
+        0, LIGHT_GREY, BLACK, headers,
+        sizeof(headers) / sizeof(headers[0])
+    );
+
+    // Footer
+    tm_navigation(
+        ROW_SIZE - 1, CYAN, BLACK, footers, 
+        sizeof(footers) / sizeof(footers[0])
+    );
+
+    create_text_region(2,15,35,18,false);
+    text_region_activate(1);
 }

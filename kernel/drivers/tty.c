@@ -2,15 +2,15 @@
 #include "ports.h"
 #include "../libc/util.h"
 
-
 #define VIDEO_MEMORY 0xb8000
 #define VGA_ADDRESS_PORT 0x3d4
 #define VGA_DATA_PORT 0x3d5
 #define VGA_HIGH_BYTE 14
 #define VGA_LOW_BYTE 15
 
+#define TEXT_REGIONS_MAX 16
 
-static TextRegion text_region[16];
+static TextRegion text_region[TEXT_REGIONS_MAX];
 static size_t text_region_size = 0;
 static size_t text_region_active = 0;
 
@@ -116,6 +116,15 @@ void set_screen_color(uint8_t bg) {
 
 void clear_cell(uint8_t col, uint8_t row) {
     set_cell_color(col, row, BLACK);
+}
+
+
+void clear_cell_cursor() {
+    set_cell_color(
+        calc_col(get_cursor_pos()),
+        calc_row(get_cursor_pos()),
+        BLACK
+    );
 }
 
 

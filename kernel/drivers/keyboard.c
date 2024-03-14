@@ -10,6 +10,7 @@ static uint8_t key_buffer[KEYBOARD_BUFFER_LENGTH];
 static bool uppercase_flag = false;
 static bool text_region_limit = false;
 
+
 uint8_t kb_scancode_keys[] = {
     // Keyboard characters indexed by scancode
     0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b', '\t',   // 1234
@@ -29,18 +30,14 @@ uint8_t kb_scancode_keys[] = {
 
 static void keyboard_handle_key(uint8_t key) {
     if (key == '\b') {
-        uint8_t dest_col = tr_get_dest_col(tr_get_active());
-        uint8_t dest_row = tr_get_dest_row(tr_get_active());
+        size_t tr_active = tr_get_active();
         uint8_t current_col = calc_col(get_cursor_pos());
         uint8_t current_row = calc_row(get_cursor_pos());
 
-        if (dest_col == current_col && dest_row == current_row) {
+        if (tr_get_dest_col(tr_active) == current_col && tr_get_dest_row(tr_active) == current_row) {
             if (text_region_limit) {
                 cursor_retreat();
-                clear_cell(
-                    calc_col(get_cursor_pos()), 
-                    calc_row(get_cursor_pos())
-                );
+                clear_cell_cursor();
                 text_region_limit = false;
             }
             else {
@@ -50,10 +47,7 @@ static void keyboard_handle_key(uint8_t key) {
         }
         else {
             cursor_retreat();
-            clear_cell(
-                calc_col(get_cursor_pos()), 
-                calc_row(get_cursor_pos())
-            );
+            clear_cell_cursor();
         }
         strpop(key_buffer);
     }
@@ -61,7 +55,6 @@ static void keyboard_handle_key(uint8_t key) {
         newline();
         // TODO: Handle user input
     }
-
     else {
         text_region_limit = false;
         char output[2] = {key, '\0'};

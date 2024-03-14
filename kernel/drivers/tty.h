@@ -56,6 +56,7 @@ void set_cell_color(uint8_t col, uint8_t row, uint8_t bg);
 void set_row_color(uint8_t row, uint8_t bg);
 void set_screen_color(uint8_t bg);
 void clear_cell(uint8_t col, uint8_t row);
+void clear_cell_cursor();
 void clear_row(uint8_t row);
 void clear_screen();
 
