@@ -1,14 +1,14 @@
 #include "keyboard.h"
 #include "tty.h"
 #include "ports.h"
+#include "command.h"
 #include "../controller/isr.h"
 #include "../libc/string.h"
 
-#define KEYBOARD_BUFFER_LENGTH 256
+#define KEYBOARD_BUFFER_LENGTH 128
 
 static uint8_t key_buffer[KEYBOARD_BUFFER_LENGTH];
 static bool uppercase_flag = false;
-static bool text_region_limit = false;
 
 
 uint8_t kb_scancode_keys[] = {
@@ -29,41 +29,37 @@ uint8_t kb_scancode_keys[] = {
 
 
 static void keyboard_handle_key(uint8_t key) {
-    if (key == '\b') {
-        size_t tr_active = tr_get_active();
-        uint8_t current_col = calc_col(get_cursor_pos());
-        uint8_t current_row = calc_row(get_cursor_pos());
-
-        if (tr_get_dest_col(tr_active) == current_col && tr_get_dest_row(tr_active) == current_row) {
-            if (text_region_limit) {
+    if (strlen(key_buffer) >= KEYBOARD_BUFFER_LENGTH -1 && key != '\b' && key != '\n') {
+        // Buffer overflow prevention
+        return;
+    }
+    
+    switch(key) {
+        case('\b'):
+            if (strlen(key_buffer) != 0) {
                 cursor_retreat();
                 clear_cell_cursor();
-                text_region_limit = false;
+                strpop(key_buffer);
             }
-            else {
-                clear_cell(current_col, current_row);
-                text_region_limit = true;
+            break;
+
+        case('\n'):
+            newline();
+            if (strlen(key_buffer) > 0) {
+                command_handle(key_buffer);
+                strwipe(key_buffer);
+                newline();
+                kprint((char*)CLI_PREFIX);
             }
+            break;
+
+        default:
+            if (uppercase_flag)
+                chartoupper(key);
+            charcat(key_buffer, key);
+            kcprint(key);
+            break;
         }
-        else {
-            cursor_retreat();
-            clear_cell_cursor();
-        }
-        strpop(key_buffer);
-    }
-    else if (key == '\n') {
-        newline();
-        // TODO: Handle user input
-    }
-    else {
-        text_region_limit = false;
-        char output[2] = {key, '\0'};
-        if (uppercase_flag) {
-            strtoupper(output);
-        }
-        strcat(key_buffer, output);
-        kprint(output);
-    }
 }
 
 
@@ -80,19 +76,17 @@ static void keyboard_handle_function(uint8_t scancode) {
 }
 
 
-static void keyboard_callback(registers_t reg) {
+static void keyboard_callback(registers_t *reg) {
     uint8_t scancode = inb(0x60);
     uint8_t key = kb_scancode_keys[scancode];
 
-    if (key) {
+    if (key)
         keyboard_handle_key(key);
-    }
-    else {
-        keyboard_handle_function(scancode);
-    }
+    else
+        keyboard_handle_function(scancode);     
 }
 
 
 void init_keyboard() {
-   register_interrupt_handler(IRQ1, keyboard_callback);
+    register_interrupt_handler(IRQ1, keyboard_callback);
 }

@@ -1,14 +1,13 @@
 #include "timer.h"
 #include "isr.h"
 #include "../drivers/ports.h"
-#include "../libc/util.h"
 
 #define PIT_FREQ 1193180
 
 static uint32_t tick = 0;
 
 
-static void timer_callback(registers_t reg) {
+static void timer_callback(registers_t *reg) {
     tick++;
 }
 

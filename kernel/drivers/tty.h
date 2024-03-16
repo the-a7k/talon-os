@@ -7,6 +7,7 @@
 
 #define COL_SIZE 80
 #define ROW_SIZE 25
+#define CLI_PREFIX "test>"
 
 enum COLORS_16 {
     BLACK,
@@ -28,21 +29,11 @@ enum COLORS_16 {
 };
 
 
-typedef struct {
-    uint8_t src_col;
-    uint8_t src_row;
-    uint8_t dest_col;
-    uint8_t dest_row;
-    uint16_t cursor_pos;
-    bool is_scrollable;
-    bool is_active;
-} TextRegion;
-
-
 // TTY basic output
 void write_cell(char c, uint8_t col, uint8_t row, uint8_t bg, uint8_t fg);
 void kprint_color(char *str, uint8_t bg, uint8_t fg);
 void kprint(char *str);
+void kcprint(char character);
 void error_msg(char *reason);
 
 // Screen position calculations
@@ -74,20 +65,8 @@ bool cursor_valid();
 void move_cursor(uint8_t col, uint8_t row);
 uint16_t get_cursor_pos();
 
-// Specify text-writable region
+// Basic CLI setup
 void tty_setup();
-void create_text_region(uint8_t src_col, uint8_t src_row, uint8_t dest_col, uint8_t dest_row, bool is_scrollable);
-void text_region_activate(size_t num);
-
-// Text region getters (shortened to 'tr')
-TextRegion* tr_get(size_t num);
-size_t tr_get_size();
-size_t tr_get_active();
-uint8_t tr_get_src_col(size_t num);
-uint8_t tr_get_src_row(size_t num);
-uint8_t tr_get_dest_col(size_t num);
-uint8_t tr_get_dest_row(size_t num);
-uint16_t tr_get_cursor(size_t num);
 
 #endif
 

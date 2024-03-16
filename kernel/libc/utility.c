@@ -1,11 +1,5 @@
-#include "util.h"
+#include "utility.h"
 #include "string.h"
-
-void memory_copy(char *source, char *dest, int nbytes) {
-    for (int i = 0; i < nbytes; i++) {
-        *(dest + i) = *(source + i);
-    }
-}
 
 
 void itoa(int num, char str[]) {
@@ -15,17 +9,15 @@ void itoa(int num, char str[]) {
         num = num * (-1);
     }
 
-    int i = 0;
+    size_t i = 0;
     do {
         int digit = num % 10;
         num = num / 10;
         str[i++] = '0' + digit;
-    }
-    while (num != 0);
+    } while (num != 0);
 
-    if (is_negative) {
-       str[i++] = '-'; 
-    }
+    if (is_negative)
+       str[i++] = '-';
 
     str[i++] = '\0';
     strrev(str);

@@ -1,13 +1,13 @@
 #include <stdint.h>
 #include "string.h"
+#include "mem.h"
 
 #define ASCII_CAPITAL_OFFSET 32
 
 size_t strlen(const char *str) {
     size_t size = 0;
-    while (str[size] != '\0') {
+    while (str[size] != '\0')
         size++;
-    }
     return size;
 }
 
@@ -22,10 +22,22 @@ void strrev(char *str) {
 }
 
 
-void strcat(char *dest, const char *source) {
-    for (size_t i = 0; i < strlen(source); i++) {
-        charcat(dest, source[i]);
+bool strcomp(const char *first, const char *second) {
+    if (strlen(first) != strlen(second))
+        return false;
+    size_t i = 0;
+    while (first[i] != '\0') {
+        if (first[i] != second[i])
+            return false;
+        i++;
     }
+    return true;   
+}
+
+
+void strcat(char *dest, const char *source) {
+    for (size_t i = 0; i < strlen(source); i++)
+        charcat(dest, source[i]);
 }
 
 
@@ -36,28 +48,42 @@ void charcat(char *str, const char to_add) {
 }
 
 
+void strwipe(char *str) {
+    memset(str, 0, strlen(str));
+    str[0] = '\0';
+}
+
+
 void strpop(char *str) {
     size_t length = strlen(str);
-    if (length == 0) {
+    if (length == 0)
         return;
-    }
     str[length-1] = '\0';
 }
 
 
 void strtolower(char *str) {
-    for (size_t i = 0; i < strlen(str); i++) {
-        if (str[i] >= 'A' && str[i] <= 'Z') {
-            str[i] += ASCII_CAPITAL_OFFSET; 
-        }
+    for (size_t i = 0; i < strlen(str); i++)
+        chartolower(str[i]);
+}
+
+
+
+void strtoupper(char *str) {
+    for (size_t i = 0; i < strlen(str); i++)
+        chartoupper(str[i]);
+}
+
+
+void chartolower(char character) {
+    if (character >= 'a' && character <= 'z') {
+        character += ASCII_CAPITAL_OFFSET;
     }
 }
 
 
-void strtoupper(char *str) {
-    for (size_t i = 0; i < strlen(str); i++) {
-        if (str[i] >= 'a' && str[i] <= 'z') {
-            str[i] -= ASCII_CAPITAL_OFFSET; 
-        }
+void chartoupper(char character) {
+    if (character >= 'a' && character <= 'z') {
+        character -= ASCII_CAPITAL_OFFSET;
     }
 }

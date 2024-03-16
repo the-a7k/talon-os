@@ -4,7 +4,7 @@
 #include "../drivers/keyboard.h"
 #include "../drivers/tty.h"
 #include "../drivers/ports.h"
-#include "../libc/util.h"
+#include "../libc/utility.h"
 
 #define INTTERUPT_HANDLER_COUNT 256
 
@@ -87,15 +87,14 @@ void isr_handler(registers_t *reg) {
 }
 
 
-void register_interrupt_handler(uint8_t n, isr_t handler) {
-    interrupt_handlers[n] = handler;
+void register_interrupt_handler(uint8_t num, isr_t handler) {
+    interrupt_handlers[num] = handler;
 }
 
 
 void irq_handler(registers_t *reg) {
-    if (reg->int_num >= 40) {
+    if (reg->int_num >= 40)
         outb(0xA0, 0x20);  // Slave
-    }
     outb(0x20, 0x20);  // Master
 
     if (interrupt_handlers[reg->int_num] != 0) {

@@ -15,7 +15,7 @@ GRUB_DEST = "build/iso/boot/grub"
 KERNEL_DEST = "build/talon.bin"
 
 
-def shellout(command):
+def cmdout(command):
     get_result = os.system(command)
     if get_result != 0:
         print(f"\nExecuting stopped at a command: {command}")
@@ -24,7 +24,7 @@ def shellout(command):
 
 
 def os_clean():
-    shellout(f"rm -rf {BUILD_DEST}")
+    cmdout(f"rm -rf {BUILD_DEST}")
     print(f"\n[Removed directory: {BUILD_DEST}]\n")
 
 
@@ -34,7 +34,7 @@ def os_build():
     print(f"\n[Compilation start]\n")
 
     os.makedirs(OBJ_DEST, exist_ok=True)
-    shellout(f"nasm -f elf32 {BOOT_SRC} -o {OBJ_DEST}boot.o")
+    cmdout(f"nasm -f elf32 {BOOT_SRC} -o {OBJ_DEST}boot.o")
 
     # Find source files and compile them into objects
     c_files = glob.glob(KERNEL_ROOT_SRC + '**/*.c', recursive=True)
@@ -53,14 +53,14 @@ def os_build():
                 compiler_params = "g++ -m32 -ffreestanding -c"
             elif file in asm_files:
                 compiler_params = "nasm -f elf32"
-            shellout(f"{compiler_params} {file} -o {obj_file}")
+            cmdout(f"{compiler_params} {file} -o {obj_file}")
 
     # Link objects together
     objects = " ".join([
         f"{OBJ_DEST}{os.path.splitext(os.path.basename(file))[0]}.o" 
         for file in c_files + cpp_files + asm_files])
 
-    shellout(f"ld -m elf_i386 -T {LINKER_SRC} -o {KERNEL_DEST} {OBJ_DEST}boot.o {objects}")
+    cmdout(f"ld -m elf_i386 -T {LINKER_SRC} -o {KERNEL_DEST} {OBJ_DEST}boot.o {objects}")
     print(f"\n[Compilation end]\n")
 
 
@@ -68,16 +68,16 @@ def os_iso():
     # Creating a bootable ISO by utilizing grub-mkrescue
     print(f"\n[ISO generation start]\n")
     os.makedirs(GRUB_DEST, exist_ok=True)
-    shellout(f"cp grub.cfg {GRUB_DEST}")
-    shellout(f"cp {KERNEL_DEST} {GRUB_DEST}")
-    shellout(f"grub-mkrescue -o {ISO_DEST} build/iso")
+    cmdout(f"cp grub.cfg {GRUB_DEST}")
+    cmdout(f"cp {KERNEL_DEST} {GRUB_DEST}")
+    cmdout(f"grub-mkrescue -o {ISO_DEST} build/iso")
     print(f"\n[ISO generation end]\n")
 
 
 def os_run():
     # Running the ISO in a virtual environment
     print(f"\n[Running ISO in QEMU]\n")
-    shellout(f"qemu-system-i386 -cdrom {ISO_DEST}")
+    cmdout(f"qemu-system-i386 -cdrom {ISO_DEST}")
 
 
 def os_all():
