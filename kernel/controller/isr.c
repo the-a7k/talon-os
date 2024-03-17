@@ -11,38 +11,38 @@
 isr_t interrupt_handlers[INTTERUPT_HANDLER_COUNT];
 
 void isr_setup() {
-    set_idt_gate(0, (uint32_t)isr0);
-    set_idt_gate(1, (uint32_t)isr1);
-    set_idt_gate(2, (uint32_t)isr2);
-    set_idt_gate(3, (uint32_t)isr3);
-    set_idt_gate(4, (uint32_t)isr4);
-    set_idt_gate(5, (uint32_t)isr5);
-    set_idt_gate(6, (uint32_t)isr6);
-    set_idt_gate(7, (uint32_t)isr7);
-    set_idt_gate(8, (uint32_t)isr8);
-    set_idt_gate(9, (uint32_t)isr9);
-    set_idt_gate(10, (uint32_t)isr10);
-    set_idt_gate(11, (uint32_t)isr11);
-    set_idt_gate(12, (uint32_t)isr12);
-    set_idt_gate(13, (uint32_t)isr13);
-    set_idt_gate(14, (uint32_t)isr14);
-    set_idt_gate(15, (uint32_t)isr15);
-    set_idt_gate(16, (uint32_t)isr16);
-    set_idt_gate(17, (uint32_t)isr17);
-    set_idt_gate(18, (uint32_t)isr18);
-    set_idt_gate(19, (uint32_t)isr19);
-    set_idt_gate(20, (uint32_t)isr20);
-    set_idt_gate(21, (uint32_t)isr21);
-    set_idt_gate(22, (uint32_t)isr22);
-    set_idt_gate(23, (uint32_t)isr23);
-    set_idt_gate(24, (uint32_t)isr24);
-    set_idt_gate(25, (uint32_t)isr25);
-    set_idt_gate(26, (uint32_t)isr26);
-    set_idt_gate(27, (uint32_t)isr27);
-    set_idt_gate(28, (uint32_t)isr28);
-    set_idt_gate(29, (uint32_t)isr29);
-    set_idt_gate(30, (uint32_t)isr30);
-    set_idt_gate(31, (uint32_t)isr31);
+    idt_gate_setup(0, (uint32_t)isr0);
+    idt_gate_setup(1, (uint32_t)isr1);
+    idt_gate_setup(2, (uint32_t)isr2);
+    idt_gate_setup(3, (uint32_t)isr3);
+    idt_gate_setup(4, (uint32_t)isr4);
+    idt_gate_setup(5, (uint32_t)isr5);
+    idt_gate_setup(6, (uint32_t)isr6);
+    idt_gate_setup(7, (uint32_t)isr7);
+    idt_gate_setup(8, (uint32_t)isr8);
+    idt_gate_setup(9, (uint32_t)isr9);
+    idt_gate_setup(10, (uint32_t)isr10);
+    idt_gate_setup(11, (uint32_t)isr11);
+    idt_gate_setup(12, (uint32_t)isr12);
+    idt_gate_setup(13, (uint32_t)isr13);
+    idt_gate_setup(14, (uint32_t)isr14);
+    idt_gate_setup(15, (uint32_t)isr15);
+    idt_gate_setup(16, (uint32_t)isr16);
+    idt_gate_setup(17, (uint32_t)isr17);
+    idt_gate_setup(18, (uint32_t)isr18);
+    idt_gate_setup(19, (uint32_t)isr19);
+    idt_gate_setup(20, (uint32_t)isr20);
+    idt_gate_setup(21, (uint32_t)isr21);
+    idt_gate_setup(22, (uint32_t)isr22);
+    idt_gate_setup(23, (uint32_t)isr23);
+    idt_gate_setup(24, (uint32_t)isr24);
+    idt_gate_setup(25, (uint32_t)isr25);
+    idt_gate_setup(26, (uint32_t)isr26);
+    idt_gate_setup(27, (uint32_t)isr27);
+    idt_gate_setup(28, (uint32_t)isr28);
+    idt_gate_setup(29, (uint32_t)isr29);
+    idt_gate_setup(30, (uint32_t)isr30);
+    idt_gate_setup(31, (uint32_t)isr31);
 
     // Remaping the PIC
     outb(0x20, 0x11);
@@ -56,24 +56,24 @@ void isr_setup() {
     outb(0x21, 0x0);
     outb(0xA1, 0x0); 
 
-    set_idt_gate(32, (uint32_t)irq0);
-    set_idt_gate(33, (uint32_t)irq1);
-    set_idt_gate(34, (uint32_t)irq2);
-    set_idt_gate(35, (uint32_t)irq3);
-    set_idt_gate(36, (uint32_t)irq4);
-    set_idt_gate(37, (uint32_t)irq5);
-    set_idt_gate(38, (uint32_t)irq6);
-    set_idt_gate(39, (uint32_t)irq7);
-    set_idt_gate(40, (uint32_t)irq8);
-    set_idt_gate(41, (uint32_t)irq9);
-    set_idt_gate(42, (uint32_t)irq10);
-    set_idt_gate(43, (uint32_t)irq11);
-    set_idt_gate(44, (uint32_t)irq12);
-    set_idt_gate(45, (uint32_t)irq13);
-    set_idt_gate(46, (uint32_t)irq14);
-    set_idt_gate(47, (uint32_t)irq15);
+    idt_gate_setup(32, (uint32_t)irq0);
+    idt_gate_setup(33, (uint32_t)irq1);
+    idt_gate_setup(34, (uint32_t)irq2);
+    idt_gate_setup(35, (uint32_t)irq3);
+    idt_gate_setup(36, (uint32_t)irq4);
+    idt_gate_setup(37, (uint32_t)irq5);
+    idt_gate_setup(38, (uint32_t)irq6);
+    idt_gate_setup(39, (uint32_t)irq7);
+    idt_gate_setup(40, (uint32_t)irq8);
+    idt_gate_setup(41, (uint32_t)irq9);
+    idt_gate_setup(42, (uint32_t)irq10);
+    idt_gate_setup(43, (uint32_t)irq11);
+    idt_gate_setup(44, (uint32_t)irq12);
+    idt_gate_setup(45, (uint32_t)irq13);
+    idt_gate_setup(46, (uint32_t)irq14);
+    idt_gate_setup(47, (uint32_t)irq15);
 
-    set_idt(); // Load with ASM
+    idt_setup(); // Load with ASM
 }
 
 
@@ -87,7 +87,7 @@ void isr_handler(registers_t *reg) {
 }
 
 
-void register_interrupt_handler(uint8_t num, isr_t handler) {
+void interrupt_handler_install(uint8_t num, isr_t handler) {
     interrupt_handlers[num] = handler;
 }
 
@@ -106,6 +106,6 @@ void irq_handler(registers_t *reg) {
 
 void irq_setup() {
     asm volatile("sti");   // Enabling interrupts
-    init_timer(1);         // IRQ 01 timer
+    init_timer();          // IRQ 01 timer
     init_keyboard();       // IRQ 02 keyboard
 }

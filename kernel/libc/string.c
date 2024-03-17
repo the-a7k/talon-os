@@ -22,16 +22,13 @@ void strrev(char *str) {
 }
 
 
-bool strcomp(const char *first, const char *second) {
-    if (strlen(first) != strlen(second))
-        return false;
-    size_t i = 0;
-    while (first[i] != '\0') {
-        if (first[i] != second[i])
-            return false;
-        i++;
+int strcmp(const char *first, const char *second) {
+    size_t i;
+    for (i = 0; first[i] == second[i]; i++) {
+        if (first[i] == '\0') 
+            return 0;
     }
-    return true;   
+    return first[i] - second[i];
 }
 
 

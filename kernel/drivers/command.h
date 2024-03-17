@@ -3,6 +3,6 @@
 
 #include <stdint.h>
 
-void command_handle(const uint8_t *command);
+void command_handle(const char *command);
 
 #endif

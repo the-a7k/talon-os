@@ -6,7 +6,7 @@
 
 size_t strlen(const char *str);
 void strrev(char *str);
-bool strcomp(const char *first, const char *second);
+int strcmp(const char *first, const char *second);
 void strcat(char *dest, const char *source);
 void charcat(char *str, char to_add);
 void strwipe(char *str);

@@ -82,7 +82,7 @@ typedef struct {
 void isr_setup();
 void isr_handler(registers_t *r);
 typedef void (*isr_t)(registers_t*);
-void register_interrupt_handler(uint8_t num, isr_t handler);
+void interrupt_handler_install(uint8_t num, isr_t handler);
 void irq_setup();
 
 #endif

@@ -8,11 +8,18 @@ import sys
 BOOT_SRC = "boot/boot.asm"
 KERNEL_ROOT_SRC = "kernel/"
 LINKER_SRC = "linker.ld"
+
 BUILD_DEST = "build"
 OBJ_DEST = "build/obj/"
 ISO_DEST = "build/talon.iso"
 GRUB_DEST = "build/iso/boot/grub"
 KERNEL_DEST = "build/talon.bin"
+
+GCC_COMP = "gcc -m32 -ffreestanding -c"
+GPP_COMP = "g++ -m32 -ffreestanding -c"
+NASM_COMP = "nasm -f elf32"
+
+QEMU_ARGS = "-audiodev pa,id=speaker -machine pcspk-audiodev=speaker"
 
 
 def cmdout(command):
@@ -45,15 +52,15 @@ def os_build():
         for file in file_list:
             basename = os.path.splitext(os.path.basename(file))[0]
             obj_file = os.path.join(OBJ_DEST, f"{basename}.o")
-            compiler_params = ""
+            compiler_args = ""
 
             if file in c_files:
-                compiler_params = "gcc -m32 -ffreestanding -c"
+                compiler_args = GCC_COMP;
             elif file in cpp_files:
-                compiler_params = "g++ -m32 -ffreestanding -c"
+                compiler_args = GPP_COMP
             elif file in asm_files:
-                compiler_params = "nasm -f elf32"
-            cmdout(f"{compiler_params} {file} -o {obj_file}")
+                compiler_args = NASM_COMP
+            cmdout(f"{compiler_args} {file} -o {obj_file}")
 
     # Link objects together
     objects = " ".join([
@@ -77,7 +84,7 @@ def os_iso():
 def os_run():
     # Running the ISO in a virtual environment
     print(f"\n[Running ISO in QEMU]\n")
-    cmdout(f"qemu-system-i386 -cdrom {ISO_DEST}")
+    cmdout(f"qemu-system-i386 -cdrom {ISO_DEST} {QEMU_ARGS}")
 
 
 def os_all():

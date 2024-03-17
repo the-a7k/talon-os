@@ -7,7 +7,7 @@
 
 #define COL_SIZE 80
 #define ROW_SIZE 25
-#define CLI_PREFIX "test>"
+#define CLI_PREFIX "kernel>"
 
 enum COLORS_16 {
     BLACK,

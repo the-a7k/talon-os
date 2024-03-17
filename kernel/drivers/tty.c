@@ -24,14 +24,14 @@ void kprint_color(char *str, uint8_t bg, uint8_t fg) {
         uint16_t pos = get_cursor_pos(); 
         bool cursor_overflow = false;
 
-        if (pos >= (ROW_SIZE * COL_SIZE * 2) - 1) {
+        if (pos >= (ROW_SIZE * COL_SIZE * 2)) {
             scroll();
             pos = get_cursor_pos();
             bool cursor_overflow = true;
         }
 
-        if (str[i] == '\n' || str[i] == '\r') {
-            if (!cursor_overflow);
+        if (str[i] == '\n') {
+            if (!cursor_overflow)
                 newline();
         }
         else if (str[i] == '\t')
@@ -242,5 +242,6 @@ uint16_t get_cursor_pos() {
 
 void tty_setup() {
     clear_screen();
+    kprint_color("Welcome to talonOS! Type 'help' to get started.\n", BLACK, LIGHT_BLUE);
     kprint((char *)CLI_PREFIX);
 }
