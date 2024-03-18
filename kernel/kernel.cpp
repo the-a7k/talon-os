@@ -37,15 +37,15 @@ extern "C" void kernel_main() {
 
     //generate_sample_scene();
 
-    CppTesting test;
-    test.set_msg("Testing from C++\n");
-    //test.print_msg();
+    CppTesting cpptest;
+    cpptest.set_msg("Testing from C++\n");
+    //cpptest.print_msg();
 
     for (;;) {
-        if (get_tick() == 100) {
+        if (calc_millisecond(get_tick()) == 1000) {
             // PC speaker testing
             speaker_play(80, 50);
-            speaker_play(100, 60);
+            speaker_play(100, 50);
         }
     }
 }

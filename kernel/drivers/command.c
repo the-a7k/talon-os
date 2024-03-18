@@ -1,11 +1,11 @@
+#include <stddef.h>
 #include "command.h"
 #include "tty.h"
 #include "ports.h"
-#include "../libc/string.h"
-#include "../libc/utility.h"
 #include "../controller/timer.h"
 #include "../controller/speaker.h"
-#include <stddef.h>
+#include "../libc/string.h"
+#include "../libc/utility.h"
 
 #define COMMAND_MAXSIZE 128
 

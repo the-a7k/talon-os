@@ -1,5 +1,5 @@
-#include "mem.h"
 #include <stddef.h>
+#include "mem.h"
 
 
 void memcpy(void *dest, const void *source, uint32_t count) {

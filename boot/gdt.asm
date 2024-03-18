@@ -1,8 +1,8 @@
 gdt_start:
 
 gdt_null:
-	dd 0x0				; 4 byte, 32 bit
-	dd 0x0				; 4 byte, 32 bit
+	dd 0x0              ; 4 byte, 32 bit
+	dd 0x0              ; 4 byte, 32 bit
 
 gdt_code:
     dw 0xffff         	; Limit                                                          - 2 byte, 16 bit
@@ -24,8 +24,8 @@ gdt_end:
 
 
 gdt_descriptor:
-	dw gdt_end - gdt_start - 1		; Start, 16 bit
-	dd gdt_start					; Size, 32 bit
+	dw gdt_end - gdt_start - 1      ; Start, 16 bit
+	dd gdt_start                    ; Size, 32 bit
 
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start

@@ -1,13 +1,14 @@
+#include <stddef.h>
 #include "tty.h"
 #include "ports.h"
 #include "../libc/mem.h"
+#include "../libc/utility.h"
 
 #define VIDEO_MEMORY 0xb8000
 #define VGA_ADDRESS_PORT 0x3d4
 #define VGA_DATA_PORT 0x3d5
-#define VGA_HIGH_BYTE 14
-#define VGA_LOW_BYTE 15
-
+#define VGA_HIGH 14
+#define VGA_LOW 15
 
 
 void write_cell(char c, uint8_t col, uint8_t row, uint8_t bg, uint8_t fg) {
@@ -51,9 +52,16 @@ void kprint(char *str) {
 }
 
 
-void kcprint(char character) {
-    char char_temp[2] = {character, '\0'};
-    kprint(char_temp);
+void kputchar(char c) {
+    char char_build[sizeof(c) * 2] = {c, '\0'};
+    kprint(char_build);
+}
+
+
+void kprintint(int num) {
+    char int_build[32];
+    itoa(num, int_build);
+    kprint(int_build);
 }
 
 
@@ -163,16 +171,16 @@ void scroll() {
 
 
 void enable_cursor(uint8_t cursor_start, uint8_t cursor_end) {
-	outb(VGA_ADDRESS_PORT, 0x0A);
-	outb(VGA_DATA_PORT, (inb(VGA_DATA_PORT) & 0xC0) | cursor_start);
-	outb(VGA_ADDRESS_PORT, 0x0B);
-	outb(VGA_DATA_PORT, (inb(VGA_DATA_PORT) & 0xE0) | cursor_end);
+    outb(VGA_ADDRESS_PORT, 0x0A);
+    outb(VGA_DATA_PORT, (inb(VGA_DATA_PORT) & 0xC0) | cursor_start);
+    outb(VGA_ADDRESS_PORT, 0x0B);
+    outb(VGA_DATA_PORT, (inb(VGA_DATA_PORT) & 0xE0) | cursor_end);
 }
 
 
 void disable_cursor() {
-	outb(VGA_ADDRESS_PORT, 0x0A);
-	outb(VGA_DATA_PORT, 0x20);
+    outb(VGA_ADDRESS_PORT, 0x0A);
+    outb(VGA_DATA_PORT, 0x20);
 }
 
 
@@ -222,19 +230,18 @@ void move_cursor(uint8_t col, uint8_t row) {
     }
     else {
         uint16_t pos = calc_pos(col, row) / 2;
-        outb(VGA_ADDRESS_PORT, VGA_HIGH_BYTE);
+        outb(VGA_ADDRESS_PORT, VGA_HIGH);
         outb(VGA_DATA_PORT, (uint8_t)(pos >> 8));
-        outb(VGA_ADDRESS_PORT, VGA_LOW_BYTE);
+        outb(VGA_ADDRESS_PORT, VGA_LOW);
         outb(VGA_DATA_PORT, (uint8_t)(pos & 0xff));
-        //text_region[tr_get_active()].cursor_pos = pos * 2;
     }
 }
 
 
 uint16_t get_cursor_pos() {
-    outb(VGA_ADDRESS_PORT, VGA_HIGH_BYTE);
+    outb(VGA_ADDRESS_PORT, VGA_HIGH);
     uint16_t pos = inb(VGA_DATA_PORT) << 8;
-    outb(VGA_ADDRESS_PORT, VGA_LOW_BYTE);
+    outb(VGA_ADDRESS_PORT, VGA_LOW);
     pos += inb(VGA_DATA_PORT);
     return pos * 2;
 }

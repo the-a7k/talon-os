@@ -1,9 +1,13 @@
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include "keyboard.h"
 #include "tty.h"
 #include "ports.h"
 #include "command.h"
 #include "../controller/isr.h"
 #include "../libc/string.h"
+
 
 #define KEYBOARD_BUFFER_LENGTH 128
 
@@ -52,10 +56,11 @@ static void keyboard_handle_key(uint8_t key) {
             break;
 
         default:
-            if (uppercase_flag)
-                chartoupper(key);
+            if (uppercase_flag) {
+                chartoupper(&key);
+            }
             charcat(key_buffer, key);
-            kcprint(key);
+            kputchar(key);
             break;
         }
 }

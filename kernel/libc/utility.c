@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include "utility.h"
 #include "string.h"
 

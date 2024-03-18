@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <stddef.h>
 
 #define COL_SIZE 80
 #define ROW_SIZE 25
@@ -33,7 +32,8 @@ enum COLORS_16 {
 void write_cell(char c, uint8_t col, uint8_t row, uint8_t bg, uint8_t fg);
 void kprint_color(char *str, uint8_t bg, uint8_t fg);
 void kprint(char *str);
-void kcprint(char character);
+void kputchar(char c);
+void kprintint(int num);
 void error_msg(char *reason);
 
 // Screen position calculations

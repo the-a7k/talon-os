@@ -4,6 +4,8 @@
 
 #define ASCII_CAPITAL_OFFSET 32
 
+
+// String functions
 size_t strlen(const char *str) {
     size_t size = 0;
     while (str[size] != '\0')
@@ -38,13 +40,6 @@ void strcat(char *dest, const char *source) {
 }
 
 
-void charcat(char *str, const char to_add) {
-    size_t length = strlen(str);
-    str[length] = to_add;
-    str[length+1] = '\0';
-}
-
-
 void strwipe(char *str) {
     memset(str, 0, strlen(str));
     str[0] = '\0';
@@ -61,26 +56,31 @@ void strpop(char *str) {
 
 void strtolower(char *str) {
     for (size_t i = 0; i < strlen(str); i++)
-        chartolower(str[i]);
+        chartolower(&str[i]);
 }
-
 
 
 void strtoupper(char *str) {
     for (size_t i = 0; i < strlen(str); i++)
-        chartoupper(str[i]);
+        chartoupper(&str[i]);
 }
 
 
-void chartolower(char character) {
-    if (character >= 'a' && character <= 'z') {
-        character += ASCII_CAPITAL_OFFSET;
-    }
+// Char functions
+void charcat(char *str, const char to_add) {
+    size_t length = strlen(str);
+    str[length] = to_add;
+    str[length+1] = '\0';
 }
 
 
-void chartoupper(char character) {
-    if (character >= 'a' && character <= 'z') {
-        character -= ASCII_CAPITAL_OFFSET;
-    }
+void chartolower(char *c) {
+    if (*c >= 'A' && *c <= 'Z') 
+        *c += ASCII_CAPITAL_OFFSET;
+}
+
+
+void chartoupper(char *c) {
+    if (*c >= 'a' && *c <= 'z')
+       *c -= ASCII_CAPITAL_OFFSET;
 }
