@@ -1,4 +1,4 @@
-#include "ports.h"
+#include "../include/ports.h"
 
 // Read a byte from a port
 uint8_t inb(uint16_t port) {

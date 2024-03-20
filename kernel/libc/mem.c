@@ -1,10 +1,10 @@
 #include <stddef.h>
-#include "mem.h"
+#include "../include/mem.h"
 
 
-void memcpy(void *dest, const void *source, uint32_t count) {
+void memcpy(void *dest, const void *src, uint32_t count) {
     uint16_t *dest_adr = (uint16_t *)dest;
-    const uint16_t *src_adr = (const uint16_t *)source;
+    const uint16_t *src_adr = (const uint16_t *)src;
     while (count--)
         *dest_adr++ = *src_adr++;
 }

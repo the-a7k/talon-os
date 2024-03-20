@@ -1,6 +1,6 @@
 #include <stdint.h>
-#include "string.h"
-#include "mem.h"
+#include "../include/string.h"
+#include "../include/mem.h"
 
 #define ASCII_CAPITAL_OFFSET 32
 
@@ -34,9 +34,9 @@ int strcmp(const char *first, const char *second) {
 }
 
 
-void strcat(char *dest, const char *source) {
-    for (size_t i = 0; i < strlen(source); i++)
-        charcat(dest, source[i]);
+void strcat(char *dest, const char *src) {
+    for (size_t i = 0; i < strlen(src); i++)
+        charcat(dest, src[i]);
 }
 
 

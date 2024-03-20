@@ -1,6 +1,6 @@
 #include <stdbool.h>
-#include "utility.h"
-#include "string.h"
+#include "../include/utility.h"
+#include "../include/string.h"
 
 
 void itoa(int num, char str[]) {

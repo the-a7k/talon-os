@@ -1,4 +1,4 @@
-#include "idt.h"
+#include "../include/idt.h"
 
 #define KERNEL_CS_OFFSET 0x08
 #define IDT_ENTRIES 255

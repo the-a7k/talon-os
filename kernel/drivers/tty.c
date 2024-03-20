@@ -1,8 +1,8 @@
 #include <stddef.h>
-#include "tty.h"
-#include "ports.h"
-#include "../libc/mem.h"
-#include "../libc/utility.h"
+#include "../include/tty.h"
+#include "../include/ports.h"
+#include "../include/mem.h"
+#include "../include/utility.h"
 
 #define VIDEO_MEMORY 0xb8000
 #define VGA_ADDRESS_PORT 0x3d4
@@ -48,7 +48,7 @@ void kprint_color(char *str, uint8_t bg, uint8_t fg) {
 
 
 void kprint(char *str) {
-    kprint_color(str, BLACK, LIGHT_GREY);
+    kprint_color(str, TTY_BLACK, TTY_LIGHT_GREY);
 }
 
 
@@ -66,8 +66,8 @@ void kprintint(int num) {
 
 
 void error_msg(char *reason) {
-    kprint_color("\nAn error has occured! Reason: ", BLACK, RED);
-    kprint_color(reason, BLACK, PINK);
+    kprint_color("\nAn error has occured! Reason: ", TTY_BLACK, TTY_RED);
+    kprint_color(reason, TTY_BLACK, TTY_PINK);
     newline();
 }
 
@@ -97,7 +97,7 @@ void set_cell_color(uint8_t col, uint8_t row, uint8_t bg) {
         error_msg("Screen cell location out of bounds");
         return;
     }
-    write_cell(' ', col, row, bg, LIGHT_GREY);
+    write_cell(' ', col, row, bg, TTY_LIGHT_GREY);
 }
 
 
@@ -118,7 +118,7 @@ void set_screen_color(uint8_t bg) {
 
 
 void clear_cell(uint8_t col, uint8_t row) {
-    set_cell_color(col, row, BLACK);
+    set_cell_color(col, row, TTY_BLACK);
 }
 
 
@@ -126,18 +126,18 @@ void clear_cell_cursor() {
     set_cell_color(
         calc_col(get_cursor_pos()),
         calc_row(get_cursor_pos()),
-        BLACK
+        TTY_BLACK
     );
 }
 
 
 void clear_row(uint8_t row) {
-    set_row_color(row, BLACK);
+    set_row_color(row, TTY_BLACK);
 }
 
 
 void clear_screen() {
-    set_screen_color(BLACK);
+    set_screen_color(TTY_BLACK);
     move_cursor(0,0);
 }
 
@@ -249,6 +249,6 @@ uint16_t get_cursor_pos() {
 
 void tty_setup() {
     clear_screen();
-    kprint_color("Welcome to talonOS! Type 'help' to get started.\n", BLACK, LIGHT_BLUE);
+    kprint_color("Welcome to talonOS! Type 'help' to get started.\n", TTY_BLACK, TTY_LIGHT_BLUE);
     kprint((char *)CLI_PREFIX);
 }

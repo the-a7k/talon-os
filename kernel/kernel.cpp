@@ -1,12 +1,13 @@
 extern "C" {
-    #include "drivers/tty.h"
-    #include "drivers/command.h"
-    #include "drivers/ports.h"
-    #include "libc/utility.h"
-    #include "libc/string.h"
-    #include "controller/isr.h"
-    #include "controller/timer.h"
-    #include "controller/speaker.h"
+    #include "include/tty.h"
+    #include "include/command.h"
+    #include "include/ports.h"
+    #include "include/utility.h"
+    #include "include/string.h"
+    #include "include/isr.h"
+    #include "include/timer.h"
+    #include "include/speaker.h"
+    #include "include/keyboard.h"
 }
 
 /* C libraries used: stdint.h, stddef.h, stdbool.h */
@@ -25,7 +26,7 @@ class CppTesting {
             this->class_msg = class_msg;
         }
         void print_msg() { 
-            kprint_color(class_msg, BLUE, YELLOW);
+            kprint_color(class_msg, TTY_BLUE, TTY_YELLOW);
         }
 };
 
@@ -42,10 +43,15 @@ extern "C" void kernel_main() {
     //cpptest.print_msg();
 
     for (;;) {
-        if (calc_millisecond(get_tick()) == 1000) {
-            // PC speaker testing
-            speaker_play(80, 50);
-            speaker_play(100, 50);
+        if (keyboard_handle_action()) {
+            // TODO: Finish keyboard rework
+            keyboard_t *kb = keyboard_get();
+            if (kb->buffer_full)
+                speaker_play(150, 50);
+            if (kb->is_special)
+                kprintint(kb->special_key);
+            else
+                kputchar(kb->last_key);
         }
     }
 }

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-void memcpy(void *dest, const void  *source, uint32_t count);
+void memcpy(void *dest, const void *src, uint32_t count);
 void memset(void *dest, const uint32_t value, uint32_t count);
 
 #endif

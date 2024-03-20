@@ -1,8 +1,8 @@
 gdt_start:
 
 gdt_null:
-	dd 0x0              ; 4 byte, 32 bit
-	dd 0x0              ; 4 byte, 32 bit
+    dd 0x0              ; 4 byte, 32 bit
+    dd 0x0              ; 4 byte, 32 bit
 
 gdt_code:
     dw 0xffff         	; Limit                                                          - 2 byte, 16 bit

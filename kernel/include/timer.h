@@ -13,11 +13,11 @@
 #define PIT_COMMAND 0x43
 // Macros also used in speaker.h
 
-void init_timer();
-uint32_t get_tick();
-uint32_t calc_millisecond(uint32_t tick);
-uint32_t calc_second(uint32_t tick);
-uint32_t calc_tick(uint32_t ms);
+void timer_init();
+uint32_t tick_get();
+uint32_t tick_calc_ms(uint32_t tick);
+uint32_t tick_calc_sec(uint32_t tick);
+uint32_t tick_calc(uint32_t ms);
 void cpu_sleep(uint32_t ms);
 
 #endif

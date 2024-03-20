@@ -1,11 +1,11 @@
 #include <stddef.h>
-#include "command.h"
-#include "tty.h"
-#include "ports.h"
-#include "../controller/timer.h"
-#include "../controller/speaker.h"
-#include "../libc/string.h"
-#include "../libc/utility.h"
+#include "../include/command.h"
+#include "../include/tty.h"
+#include "../include/ports.h"
+#include "../include/timer.h"
+#include "../include/speaker.h"
+#include "../include/string.h"
+#include "../include/utility.h"
 
 #define COMMAND_MAXSIZE 128
 
@@ -25,23 +25,23 @@ void command_handle(const char *command) {
 
     if (strcmp(base_command, "time") == 0) {
         char tick_tmp[32];
-        itoa(calc_second(get_tick()), tick_tmp);
-        kprint_color("Uptime: ", BLACK, CYAN);
-        kprint_color(tick_tmp, BLACK, CYAN);
-        kprint_color(" seconds ", BLACK, CYAN);
+        itoa(tick_calc_sec(tick_get()), tick_tmp);
+        kprint_color("Uptime: ", TTY_BLACK, TTY_CYAN);
+        kprint_color(tick_tmp, TTY_BLACK, TTY_CYAN);
+        kprint_color(" seconds ", TTY_BLACK, TTY_CYAN);
 
-        kprint_color("(IRQ ticks: ", BLACK, BROWN);
-        itoa(get_tick(), tick_tmp);
-        kprint_color(tick_tmp, BLACK, BROWN);
-        kprint_color(")", BLACK, BROWN);
+        kprint_color("(IRQ ticks: ", TTY_BLACK, TTY_BROWN);
+        itoa(tick_get(), tick_tmp);
+        kprint_color(tick_tmp, TTY_BLACK, TTY_BROWN);
+        kprint_color(")", TTY_BLACK, TTY_BROWN);
     }
 
     else if (strcmp(base_command, "ping") == 0) {
-        kprint_color("Pong!", BLACK, YELLOW);
+        kprint_color("Pong!", TTY_BLACK, TTY_YELLOW);
     }
 
     else if (strcmp(base_command, "whoami") == 0) {
-        kprint_color("kernel", BLACK, WHITE);
+        kprint_color("kernel", TTY_BLACK, TTY_WHITE);
     }
 
     else if (strcmp(base_command, "cls") == 0) {
@@ -53,7 +53,7 @@ void command_handle(const char *command) {
     }
 
     else if (strcmp(base_command, "help") == 0) {
-        kprint_color("List of available commands:\n", BLACK, LIGHT_GREEN);
+        kprint_color("List of available commands:\n", TTY_BLACK, TTY_LIGHT_GREEN);
         kprint("\ttime   (show uptime in seconds and ticks)\n");
         kprint("\tping   (pings and pongs)\n");
         kprint("\twhoami (show current user)\n");

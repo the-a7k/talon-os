@@ -1,10 +1,10 @@
-#include "isr.h"
-#include "idt.h"
-#include "timer.h"
-#include "../drivers/keyboard.h"
-#include "../drivers/tty.h"
-#include "../drivers/ports.h"
-#include "../libc/utility.h"
+#include "../include/isr.h"
+#include "../include/idt.h"
+#include "../include/timer.h"
+#include "../include/keyboard.h"
+#include "../include/tty.h"
+#include "../include/ports.h"
+#include "../include/utility.h"
 
 #define INTTERUPT_HANDLER_COUNT 256
 
@@ -80,9 +80,9 @@ void isr_setup() {
 void isr_handler(registers_t *reg) {
     char int_count[4];
     itoa(reg->int_num, int_count);
-    kprint_color("The system has halted! (int ", BLACK, RED);
-    kprint_color(int_count, BLACK, RED);
-    kprint_color(")\n", BLACK, RED);
+    kprint_color("The system has halted! (int ", TTY_BLACK, TTY_RED);
+    kprint_color(int_count, TTY_BLACK, TTY_RED);
+    kprint_color(")\n", TTY_BLACK, TTY_RED);
     asm("hlt");
 }
 
@@ -106,6 +106,6 @@ void irq_handler(registers_t *reg) {
 
 void irq_setup() {
     asm volatile("sti");   // Enabling interrupts
-    init_timer();          // IRQ 01 timer
-    init_keyboard();       // IRQ 02 keyboard
+    timer_init();          // IRQ 01 timer
+    keyboard_init();       // IRQ 02 keyboard
 }

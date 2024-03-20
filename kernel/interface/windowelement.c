@@ -1,6 +1,5 @@
-#include "windowelement.h"
-#include "../drivers/tty.h"
-#include "../libc/string.h"
+#include "../include/tty.h"
+#include "../include/string.h"
 
 #define TAB_SIZE 3
 

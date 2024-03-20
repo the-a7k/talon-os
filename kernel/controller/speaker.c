@@ -1,6 +1,6 @@
-#include "speaker.h"
-#include "timer.h"
-#include "../drivers/ports.h"
+#include "../include/speaker.h"
+#include "../include/timer.h"
+#include "../include/ports.h"
 
 #define PIT_SPEAKER_PORT 0x61
 // Other PIT macros in timer.h

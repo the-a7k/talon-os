@@ -8,23 +8,23 @@
 #define ROW_SIZE 25
 #define CLI_PREFIX "kernel>"
 
-enum COLORS_16 {
-    BLACK,
-    BLUE,
-    GREEN,
-    CYAN,
-    RED,
-    MAGENTA,
-    BROWN,
-    LIGHT_GREY,
-    DARK_GREY,
-    LIGHT_BLUE,
-    LIGHT_GREEN,
-    LIGHT_CYAN,
-    PINK,
-    LIGHT_MAGENTA,
-    YELLOW,
-    WHITE
+enum TEXMODE_COLORS {
+    TTY_BLACK,
+    TTY_BLUE,
+    TTY_GREEN,
+    TTY_CYAN,
+    TTY_RED,
+    TTY_MAGENTA,
+    TTY_BROWN,
+    TTY_LIGHT_GREY,
+    TTY_DARK_GREY,
+    TTY_LIGHT_BLUE,
+    TTY_LIGHT_GREEN,
+    TTY_LIGHT_CYAN,
+    TTY_PINK,
+    TTY_LIGHT_MAGENTA,
+    TTY_YELLOW,
+    TTY_WHITE
 };
 
 

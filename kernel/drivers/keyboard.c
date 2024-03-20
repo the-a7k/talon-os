@@ -1,31 +1,26 @@
 #include <stdint.h>
-#include <stdbool.h>
 #include <stddef.h>
-#include "keyboard.h"
-#include "tty.h"
-#include "ports.h"
-#include "command.h"
-#include "../controller/isr.h"
-#include "../libc/string.h"
+#include "../include/keyboard.h"
+#include "../include/tty.h"
+#include "../include/ports.h"
+#include "../include/isr.h"
+#include "../include/string.h"
 
 
-#define KEYBOARD_BUFFER_LENGTH 128
-
-static char key_buffer[KEYBOARD_BUFFER_LENGTH];
-static bool uppercase_flag = false;
+static bool kb_uppercase_flag = false;  // Triggers if last key was uppercase action  
+static bool kb_action_flag = false;     // Triggers on any key
+keyboard_t *kb_event;                   // Contains information about key event
 
 
 uint8_t kb_scancode_keys[] = {
     // Keyboard characters indexed by scancode
-    0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b', '\t',   // 1234
-    'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',               // QWERTY
-    0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0,              // ASDF
-    '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,                      // ZXCV
-    '*',
-    0,
-    ' ',  // Space
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // Function keys
-    '7', '8', '9', '-',  // Keypad
+    0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 0, 0,      // 1234
+    'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 0,               // QWERTY
+    0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0,           // ASDF
+    '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,                   // ZXCV
+    '*', 0, ' ',                                                                 // Space
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                                       // Function keys
+    '7', '8', '9', '-',                                                          // Keypad
     '4', '5', '6', '+', 
     '1', '2', '3',
     '0', '.',
@@ -33,62 +28,76 @@ uint8_t kb_scancode_keys[] = {
 
 
 static void keyboard_handle_key(uint8_t key) {
-    if (strlen(key_buffer) >= KEYBOARD_BUFFER_LENGTH -1 && key != '\b' && key != '\n')
-        return;  // Buffer overflow prevention
+    kb_event->is_special = false;
+    kb_event->special_key = KEY_NULL;
+    kb_action_flag = true;
 
-    switch(key) {
-        case('\b'):
-            if (strlen(key_buffer) != 0) {
-                cursor_retreat();
-                clear_cell_cursor();
-                strpop(key_buffer);
-            }
-            break;
+    if (strlen(kb_event->buffer) >= KEYBOARD_BUFFER_LENGTH - 1) {
+        kb_event->buffer_full = true;
+        kb_event->last_key = 0;
+        return;
+    }
 
-        case('\n'):
-            newline();
-            if (strlen(key_buffer) > 0) {
-                command_handle(key_buffer);
-                strwipe(key_buffer);
-                kprint("\n\n");
-                kprint((char*)CLI_PREFIX);
-            }
-            break;
+    if (kb_uppercase_flag)
+        chartoupper(&key);
 
-        default:
-            if (uppercase_flag) {
-                chartoupper(&key);
-            }
-            charcat(key_buffer, key);
-            kputchar(key);
-            break;
-        }
+    charcat(kb_event->buffer, key);
+    kb_event->buffer_full = false;
+    kb_event->last_key = key;
 }
 
 
 static void keyboard_handle_function(uint8_t scancode) {
     switch (scancode) {
-        case(0x3A):  // Caps-lock
-        case(0x2A):  // L-shift keydown
-        case(0xAA):  // L-shift keyup
-        case(0x36):  // R-shift keydown
-        case(0xB6):  // R-shift keyup
-            uppercase_flag = !uppercase_flag;
+        case(KEY_CAPSLOCK):
+        case(KEY_LSHIFT):
+        case(KEY_LSHIFT_UP):
+        case(KEY_RSHIFT):
+        case(KEY_RSHIFT_UP):
+            kb_uppercase_flag = !kb_uppercase_flag;
+            kb_action_flag = true;
+            break;
+        
+        case(KEY_ENTER):
+        case(KEY_BACKSPACE):
+            kb_event->is_special = true;
+            kb_event->special_key = scancode;
+            kb_action_flag = true;
             break;
     }
+}
+
+
+bool keyboard_handle_action() {
+    if (kb_action_flag) {
+        kb_action_flag = false;
+        return true;
+    }
+    return false;
+}
+
+
+keyboard_t *keyboard_get() {
+    return kb_event;
 }
 
 
 static void keyboard_callback(registers_t *reg) {
     uint8_t scancode = inb(0x60);
     uint8_t key = kb_scancode_keys[scancode];
+
     if (key)
         keyboard_handle_key(key);
     else
-        keyboard_handle_function(scancode);     
+       keyboard_handle_function(scancode);
 }
 
 
-void init_keyboard() {
+void keyboard_init() {
     interrupt_handler_install(IRQ1, keyboard_callback);
+    strwipe(kb_event->buffer);
+    kb_event->is_special = false;
+    kb_event->special_key = KEY_NULL;
+    kb_event->buffer_full = false;
+    kb_event->last_key = 0;
 }

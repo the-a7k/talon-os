@@ -8,7 +8,7 @@
 size_t strlen(const char *str);
 void strrev(char *str);
 int strcmp(const char *first, const char *second);
-void strcat(char *dest, const char *source);
+void strcat(char *dest, const char *src);
 void strwipe(char *str);
 void strpop(char *str);
 void strtolower(char *str);
