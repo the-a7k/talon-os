@@ -1,20 +1,18 @@
 extern "C" {
     #include "include/tty.h"
     #include "include/command.h"
-    #include "include/ports.h"
-    #include "include/utility.h"
-    #include "include/string.h"
     #include "include/isr.h"
-    #include "include/timer.h"
     #include "include/speaker.h"
     #include "include/keyboard.h"
 }
 
 /* C libraries used: stdint.h, stddef.h, stdbool.h */
 
-// TODO: Rework command
 // TODO: Add argc/argv to command
-// TODO: Implement ACPI
+// TODO: Implement ACPI(?)
+
+extern "C" void kernel_main();
+void kernel_loop();
 
 
 class CppTesting {
@@ -37,21 +35,22 @@ extern "C" void kernel_main() {
     irq_setup();
 
     //generate_sample_scene();
-
-    CppTesting cpptest;
-    cpptest.set_msg("Testing from C++\n");
+    //CppTesting cpptest;
+    //cpptest.set_msg("Testing from C++\n");
     //cpptest.print_msg();
 
+    kernel_loop();
+}
+
+
+void kernel_loop() {
     for (;;) {
-        if (keyboard_handle_action()) {
-            // TODO: Finish keyboard rework
-            keyboard_t *kb = keyboard_get();
-            if (kb->buffer_full)
-                speaker_play(150, 50);
-            if (kb->is_special)
-                kprintint(kb->special_key);
-            else
-                kputchar(kb->last_key);
+
+        if (keyboard_performed_event()) {
+            command_key_handler(keyboard_get());
+            if (keyboard_get()->buffer_full)
+                speaker_play(200,300);  // Can trigger on cpu_sleep or system lag
+
         }
     }
 }

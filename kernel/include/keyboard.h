@@ -2,28 +2,29 @@
 #define _KEYBOARD_H_
 
 #include <stdbool.h>
-
-#define KEYBOARD_BUFFER_LENGTH 128
+#include <stddef.h>
+#include "../include/queue.h"
 
 enum KB_SPECIAL_KEY {
     KEY_NULL = 0,
     
+    // Command processing
     KEY_ENTER = 0x1C,
     KEY_TAB = 0x0F,
     KEY_BACKSPACE = 0x0E,
 
+    // Uppercase text handling
+    KEY_CAPSLOCK = 0x3A,
     KEY_LSHIFT = 0x2A,
     KEY_LSHIFT_UP = 0xAA,
-
     KEY_RSHIFT = 0x36,
     KEY_RSHIFT_UP = 0xB6,
 
     KEY_LCTRL= 0x1D,
     KEY_RCTRL = 0xE01D,
+    KEY_ALT = 0x38,  // Left Alt + AltGr
 
-    KEY_LALT = 0x38,
-    KEY_CAPSLOCK = 0x3A,
-
+    // Function keys
     KEY_F1 = 0x3B,
     KEY_F2 = 0x3C,
     KEY_F3 = 0x3D,
@@ -40,18 +41,14 @@ enum KB_SPECIAL_KEY {
 
 
 typedef struct {
-    char buffer[KEYBOARD_BUFFER_LENGTH];
+    queue_t char_buffer;        // Buffer with ASCII characters
+    queue_t special_buffer;    // Buffer with special
     bool buffer_full;
-    char last_key;
-    bool is_special;
-    enum KB_SPECIAL_KEY special_key;
 } keyboard_t;
 
 
 void keyboard_init();
-char *keyboard_get_buffer();
-char keyboard_get_key();
-bool keyboard_handle_action();
+bool keyboard_performed_event();
 keyboard_t *keyboard_get();
 
 #endif
