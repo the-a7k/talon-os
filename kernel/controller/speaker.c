@@ -18,7 +18,7 @@ void speaker_disable() {
 }
 
 
-void speaker_play(const uint32_t freq, const uint32_t duration) {
+void speaker_play(const uint32_t freq, const uint32_t ms) {
 	if (!freq)
 		return;
 
@@ -33,6 +33,6 @@ void speaker_play(const uint32_t freq, const uint32_t duration) {
 	if (temp != (temp | 3))
 		outb(0x61, temp | 3);
 
-	cpu_sleep(duration);
+	cpu_sleep(ms + 15);	// Speaker end offset
 	speaker_disable();
 }

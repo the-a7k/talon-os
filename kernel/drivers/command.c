@@ -8,12 +8,12 @@
 #include "../include/utility.h"
 #include "../include/queue.h"
 
-
 #define COMMAND_MAXSIZE 128
 #define COMMAND_HISTORY_MAXSIZE 16
 
 static char command_buffer[COMMAND_MAXSIZE];
 static char *command_history[COMMAND_HISTORY_MAXSIZE];
+static bool uppercase_flag = false;
 
 
 static void cmd_help() {
@@ -29,13 +29,13 @@ static void cmd_help() {
 
 static void cmd_time() {
     char tick_tmp[32];
-    itoa(tick_calc_sec(tick_get()), tick_tmp);
+    itoa(timer_calc_sec(timer_get_tick()), tick_tmp);
     kprint_color("Uptime: ", TTY_BLACK, TTY_CYAN);
     kprint_color(tick_tmp, TTY_BLACK, TTY_CYAN);
     kprint_color(" seconds ", TTY_BLACK, TTY_CYAN);
 
     kprint_color("(IRQ ticks: ", TTY_BLACK, TTY_BROWN);
-    itoa(tick_get(), tick_tmp);
+    itoa(timer_get_tick(), tick_tmp);
     kprint_color(tick_tmp, TTY_BLACK, TTY_BROWN);
     kprint_color(")", TTY_BLACK, TTY_BROWN);
 }
@@ -45,8 +45,8 @@ static void cmd_sleep() {
     kprint_color("Sleeping for 3 seconds...\n", TTY_BLACK, TTY_MAGENTA);
     speaker_play(500,100);
     speaker_play(800,100);
-    cpu_sleep(3000);
-    kprint_color("Resumed.", TTY_BLACK, TTY_LIGHT_MAGENTA);
+    cpu_sleep(3000-200);
+    kprint_color("Resumed!", TTY_BLACK, TTY_LIGHT_MAGENTA);
     speaker_play(800,100);
     speaker_play(500,100);
 }
@@ -57,41 +57,77 @@ static void cmd_whoami() {
 }
 
 
+static void command_backspace() {
+    if (strlen(command_buffer)) {
+        cursor_retreat();
+        clear_cell_cursor();
+        strpop(command_buffer);
+    }
+}
+
+
+static void command_overflow_handler(keyboard_t *ctx) {
+    if (!ctx)
+        return;
+
+    queue_element_t process_command = 0;
+    if (queue_get_front(&ctx->special_buffer, &process_command)) {
+        if (process_command == KEY_ENTER)
+            command_execute(command_buffer);
+        else if (process_command == KEY_BACKSPACE) {
+            command_backspace();
+        }
+    }
+    queue_init(&ctx->key_buffer);       // Keyboard buffer reset
+    queue_init(&ctx->special_buffer);
+}
+
+
 void command_key_handler(keyboard_t *ctx) {
-    if (!ctx || queue_is_empty(&ctx->char_buffer))
+    if (!ctx || queue_is_empty(&ctx->key_buffer))
         return;
     
-    queue_element_t char_next = 0;
+    queue_element_t key_next = 0;
     queue_element_t special_scancode = 0;
-    while (queue_get_front(&ctx->char_buffer, &char_next)) {
-        if (char_next) {
-            kputchar(char_next);
-            charcat(command_buffer, char_next);
+
+    while (queue_get_front(&ctx->key_buffer, &key_next)) {
+        if (strlen(command_buffer) == COMMAND_MAXSIZE - 1) {
+            command_overflow_handler(ctx);
+            return;
+        }
+
+        else if (key_next) {
+            if (uppercase_flag)
+                chartoupper(&key_next);
+            kputchar(key_next);
+            charcat(command_buffer, key_next);
         }
 
         else if (queue_get_front(&ctx->special_buffer, &special_scancode)) {
             switch (special_scancode) {
-                case(KEY_BACKSPACE):
-                    if (strlen(command_buffer)) {
-                        cursor_retreat();
-                        clear_cell_cursor();
-                        strpop(command_buffer);
-                    }
+                case(KEY_CAPSLOCK):
+                case(KEY_LSHIFT):
+                case(KEY_LSHIFT_UP):
+                case(KEY_RSHIFT):
+                case(KEY_RSHIFT_UP):
+                    uppercase_flag = !uppercase_flag;
                     break;
-
+                case(KEY_BACKSPACE):
+                    command_backspace();
+                    break;
                 case(KEY_ENTER):
-                    newline();
-                    if (strlen(command_buffer)) {
+                    if (strlen(command_buffer))
                         command_execute(command_buffer);
-                        strwipe(command_buffer);
-                        kprint("\n\n");
-                        kprint((char *)CLI_PREFIX);
-                    }
+                    else 
+                        newline();
+                    break;
+                case(KEY_TAB):
+                    tab();
                     break;
             }
             queue_pop(&ctx->special_buffer); 
         }
-        queue_pop(&ctx->char_buffer);
+        queue_pop(&ctx->key_buffer);
     }
 }
 
@@ -99,6 +135,7 @@ void command_key_handler(keyboard_t *ctx) {
 void command_execute(const char *command) {
     char base_command[COMMAND_MAXSIZE];
     strwipe(base_command);
+    newline();
 
     size_t i = 0;
     while (command[i] != '\0') {
@@ -107,7 +144,6 @@ void command_execute(const char *command) {
         charcat(base_command, command[i]);
         i++;
     }
-
     strtolower(base_command);
 
     if (strcmp(base_command, "time") == 0)
@@ -134,4 +170,8 @@ void command_execute(const char *command) {
         kprint("Unknown command: ");
         kprint(base_command);
     }
+
+    strwipe(command_buffer);
+    kprint("\n\n");
+    kprint((char *)CLI_PREFIX);
 }

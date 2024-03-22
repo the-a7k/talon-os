@@ -11,13 +11,13 @@
 #define PIT_CHANNEL_1 0x41
 #define PIT_CHANNEL_2 0x42
 #define PIT_COMMAND 0x43
-// Macros also used in speaker.h
+// Macros also used in speaker.c
 
 void timer_init();
-uint32_t tick_get();
-uint32_t tick_calc_ms(uint32_t tick);
-uint32_t tick_calc_sec(uint32_t tick);
-uint32_t tick_calc(uint32_t ms);
+uint32_t timer_get_tick();
+uint32_t timer_calc_ms(uint32_t tick);
+uint32_t timer_calc_sec(uint32_t tick);
+uint32_t timer_calc_tick(uint32_t ms);
 void cpu_sleep(uint32_t ms);
 
 #endif

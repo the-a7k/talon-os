@@ -2,7 +2,7 @@
 
 // Read a byte from a port
 uint8_t inb(uint16_t port) {
-    unsigned char result;
+    uint8_t result;
     asm("in %%dx, %%al" : "=a" (result) : "d" (port));
     return result;
 }

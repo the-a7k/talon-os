@@ -4,6 +4,7 @@ extern "C" {
     #include "include/isr.h"
     #include "include/speaker.h"
     #include "include/keyboard.h"
+    #include "include/timer.h"
 }
 
 /* C libraries used: stdint.h, stddef.h, stdbool.h */
@@ -33,24 +34,22 @@ extern "C" void kernel_main() {
     tty_setup();
     isr_setup();
     irq_setup();
-
     //generate_sample_scene();
     //CppTesting cpptest;
     //cpptest.set_msg("Testing from C++\n");
     //cpptest.print_msg();
-
     kernel_loop();
 }
 
 
 void kernel_loop() {
     for (;;) {
+        cpu_sleep(1);
 
         if (keyboard_performed_event()) {
             command_key_handler(keyboard_get());
             if (keyboard_get()->buffer_full)
-                speaker_play(200,300);  // Can trigger on cpu_sleep or system lag
-
+                speaker_play(250,150);  // Handled by command, should not trigger
         }
     }
 }

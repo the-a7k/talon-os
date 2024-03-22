@@ -9,6 +9,7 @@ enum KB_SPECIAL_KEY {
     KEY_NULL = 0,
     
     // Command processing
+    KEY_ESCAPE = 0x01,
     KEY_ENTER = 0x1C,
     KEY_TAB = 0x0F,
     KEY_BACKSPACE = 0x0E,
@@ -39,13 +40,11 @@ enum KB_SPECIAL_KEY {
     KEY_F12 = 0x58,
 };
 
-
 typedef struct {
-    queue_t char_buffer;        // Buffer with ASCII characters
-    queue_t special_buffer;    // Buffer with special
+    queue_t key_buffer;
+    queue_t special_buffer;
     bool buffer_full;
 } keyboard_t;
-
 
 void keyboard_init();
 bool keyboard_performed_event();

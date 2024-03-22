@@ -4,37 +4,36 @@
 
 static volatile uint32_t tick = 0;
 
-uint32_t tick_get() {
+uint32_t timer_get_tick() {
     return tick;
 }
 
 
-uint32_t tick_calc_ms(uint32_t tick) {
+uint32_t timer_calc_ms(uint32_t tick) {
     float freq_divisor = PIT_FREQ / PIT_FREQ_DIVISOR / 1000.0;
     return (uint32_t)(tick / freq_divisor);
 }
 
 
-uint32_t tick_calc_sec(uint32_t tick) {
+uint32_t timer_calc_sec(uint32_t tick) {
     float freq_divisor = PIT_FREQ / PIT_FREQ_DIVISOR;
     return (uint32_t)(tick / freq_divisor);
 }
 
 
-uint32_t tick_calc(uint32_t ms) {
+uint32_t timer_calc_tick(uint32_t ms) {
     float freq_divisor = PIT_FREQ / PIT_FREQ_DIVISOR;
     return (uint32_t)(ms * freq_divisor / 1000);
 }
 
 
 void cpu_sleep(uint32_t ms) {
-    volatile uint32_t tick_sleep_end = tick_calc(
-        tick_calc_ms(tick_get()) + ms);
-
+    volatile uint32_t tick_sleep_end = timer_calc_tick(
+        timer_calc_ms(timer_get_tick()) + ms
+    );
     do {
         asm("hlt");
-    }
-    while(tick_get() < tick_sleep_end);
+    } while(timer_get_tick() < tick_sleep_end);
 }
 
 

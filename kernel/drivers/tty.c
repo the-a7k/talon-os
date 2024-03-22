@@ -3,6 +3,7 @@
 #include "../include/ports.h"
 #include "../include/mem.h"
 #include "../include/utility.h"
+#include "../include/command.h"
 
 #define VIDEO_MEMORY 0xb8000
 #define VGA_ADDRESS_PORT 0x3d4

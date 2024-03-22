@@ -6,7 +6,6 @@
 
 #define COL_SIZE 80
 #define ROW_SIZE 25
-#define CLI_PREFIX "kernel>"
 
 enum TEXMODE_COLORS {
     TTY_BLACK,
@@ -26,7 +25,6 @@ enum TEXMODE_COLORS {
     TTY_YELLOW,
     TTY_WHITE
 };
-
 
 // TTY basic output
 void write_cell(char c, uint8_t col, uint8_t row, uint8_t bg, uint8_t fg);

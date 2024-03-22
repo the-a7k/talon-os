@@ -70,7 +70,6 @@ extern void irq13();
 extern void irq14();
 extern void irq15();
 
-
 typedef struct {
    uint32_t ds; /* Data segment selector */
    uint32_t edi, esi, ebp, useless, ebx, edx, ecx, eax; /* Pushed by pusha */
@@ -78,10 +77,10 @@ typedef struct {
    uint32_t eip, cs, eflags, r, ss; /* Pushed by the processor automatically */
 } registers_t;
 
+typedef void (*isr_t)(registers_t*);
 
 void isr_setup();
 void isr_handler(registers_t *r);
-typedef void (*isr_t)(registers_t*);
 void interrupt_handler_install(uint8_t num, isr_t handler);
 void irq_setup();
 

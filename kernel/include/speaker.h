@@ -7,5 +7,4 @@ void speaker_enable();
 void speaker_disable();
 void speaker_play(const uint32_t freq, const uint32_t duration);
 
-
 #endif
