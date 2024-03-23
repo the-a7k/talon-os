@@ -22,6 +22,7 @@ static void cmd_help() {
     kprint("\tsleep     (beep and pause the CPU for 3 seconds)\n");
     kprint("\twhoami    (show current user)\n");
     kprint("\tcls       (clear screen)\n");
+    kprint("\tcrash     (crash the system with ISR handler)\n");
     kprint("\tshutdown  (shut down VM machine)\n");
     kprint("\thelp      (show list of commands)");
 }
@@ -71,15 +72,16 @@ static void command_overflow_handler(keyboard_t *ctx) {
         return;
 
     queue_element_t process_command = 0;
-    if (queue_get_front(&ctx->special_buffer, &process_command)) {
+    if (queue_get_front(&ctx->key_buffer, &process_command)) {
         if (process_command == KEY_ENTER)
             command_execute(command_buffer);
         else if (process_command == KEY_BACKSPACE) {
             command_backspace();
         }
     }
-    queue_init(&ctx->key_buffer);       // Keyboard buffer reset
-    queue_init(&ctx->special_buffer);
+    
+    // Keyboard buffer reset
+    queue_init(&ctx->key_buffer);
 }
 
 
@@ -87,24 +89,24 @@ void command_key_handler(keyboard_t *ctx) {
     if (!ctx || queue_is_empty(&ctx->key_buffer))
         return;
     
-    queue_element_t key_next = 0;
-    queue_element_t special_scancode = 0;
+    queue_element_t current_key = 0;
+    char converted = 0;
 
-    while (queue_get_front(&ctx->key_buffer, &key_next)) {
+    while (queue_get_front(&ctx->key_buffer, &current_key)) {
         if (strlen(command_buffer) == COMMAND_MAXSIZE - 1) {
             command_overflow_handler(ctx);
             return;
         }
 
-        else if (key_next) {
+        else if (keyboard_to_char(current_key, &converted)) {
             if (uppercase_flag)
-                chartoupper(&key_next);
-            kputchar(key_next);
-            charcat(command_buffer, key_next);
+                chartoupper(&converted);
+            kputchar(converted);
+            charcat(command_buffer, converted);
         }
 
-        else if (queue_get_front(&ctx->special_buffer, &special_scancode)) {
-            switch (special_scancode) {
+        else if (keyboard_is_special(current_key)) {
+            switch (current_key) {
                 case(KEY_CAPSLOCK):
                 case(KEY_LSHIFT):
                 case(KEY_LSHIFT_UP):
@@ -125,7 +127,6 @@ void command_key_handler(keyboard_t *ctx) {
                     tab();
                     break;
             }
-            queue_pop(&ctx->special_buffer); 
         }
         queue_pop(&ctx->key_buffer);
     }
@@ -162,6 +163,9 @@ void command_execute(const char *command) {
         outw(0x604, 0x2000);  // Temporary solution for QEMU
         error_msg("Incorrect shutdown command");
     }
+
+    else if (strcmp(base_command, "crash") == 0)
+        asm("int $18");
 
     else if (strcmp(base_command, "help") == 0)
         cmd_help();

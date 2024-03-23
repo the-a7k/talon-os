@@ -2,14 +2,12 @@
 #include "../include/keyboard.h"
 #include "../include/ports.h"
 #include "../include/isr.h"
-#include "../include/string.h"
 
 
 static bool kb_event_flag = false;      // Triggers on every successful key or function event
 static keyboard_t kb_event = {          // Struct of currently unhandled keyboard events
-    .key_buffer = { 0 },                // Buffer with lowercase ASCII chars (on key-press) or 0 (zero indicates to check the special buffer)
-    .special_buffer = { 0 },            // Buffer with scancodes of special functions or key-releases
-    .buffer_full = false                // Flag indicating full buffer(s)
+    .key_buffer = { 0 },                // Buffer with scancodes
+    .buffer_full = false                // Flag indicating full buffer
 };
 
 
@@ -28,24 +26,6 @@ static uint8_t kb_scancode_keys[] = {
 };
 
 
-static void keyboard_handle_key(uint8_t key) {
-    if (!queue_push(&kb_event.key_buffer, key) ||
-        queue_is_full(&kb_event.special_buffer))
-            kb_event.buffer_full = true;
-    else
-        kb_event.buffer_full = false;
-    kb_event_flag = true;
-}
-
-
-static void keyboard_handle_function(uint8_t scancode) {
-    if (!queue_push(&kb_event.key_buffer, 0) ||
-        !queue_push(&kb_event.special_buffer, scancode))
-            kb_event.buffer_full = true;
-    kb_event_flag = true;
-}
-
-
 bool keyboard_performed_event() {
     if (kb_event_flag) {
         kb_event_flag = false;
@@ -60,19 +40,32 @@ keyboard_t *keyboard_get() {
 }
 
 
+bool keyboard_to_char(uint8_t scancode, char *c) {
+    if (!keyboard_is_special(scancode)) {
+        *c = kb_scancode_keys[scancode];
+        return true;
+    }
+    return false;
+}
+
+
+bool keyboard_is_special(uint8_t scancode) {
+    return !kb_scancode_keys[scancode];
+}
+
+
 static void keyboard_callback(registers_t *reg) {
     uint8_t scancode = inb(0x60);
-    uint8_t key = kb_scancode_keys[scancode];
     
-    if (key)
-        keyboard_handle_key(key);
+    if (!queue_push(&kb_event.key_buffer, scancode))
+        kb_event.buffer_full = true;
     else
-       keyboard_handle_function(scancode);
+        kb_event.buffer_full = false;
+    kb_event_flag = true;
 }
 
 
 void keyboard_init() {
     interrupt_handler_install(IRQ1, keyboard_callback);
     queue_init(&kb_event.key_buffer);
-    queue_init(&kb_event.special_buffer);
 }

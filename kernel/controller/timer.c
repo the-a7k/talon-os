@@ -32,7 +32,7 @@ void cpu_sleep(uint32_t ms) {
         timer_calc_ms(timer_get_tick()) + ms
     );
     do {
-        asm("hlt");
+        asm volatile("hlt");
     } while(timer_get_tick() < tick_sleep_end);
 }
 

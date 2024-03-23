@@ -1,22 +1,24 @@
 extern "C" {
-    #include "include/tty.h"
-    #include "include/command.h"
     #include "include/isr.h"
+    #include "include/tty.h"
+    #include "include/timer.h"
     #include "include/speaker.h"
     #include "include/keyboard.h"
-    #include "include/timer.h"
+    #include "include/command.h"
 }
 
-/* C libraries used: stdint.h, stddef.h, stdbool.h */
 
 // TODO: Add argc/argv to command
-// TODO: Implement ACPI(?)
+
 
 extern "C" void kernel_main();
 void kernel_loop();
 
 
 class CppTesting {
+    //CppTesting cpptest;
+    //cpptest.set_msg("Testing from C++\n");
+    //cpptest.print_msg();
     private:
         char *class_msg;
 
@@ -34,10 +36,6 @@ extern "C" void kernel_main() {
     tty_setup();
     isr_setup();
     irq_setup();
-    //generate_sample_scene();
-    //CppTesting cpptest;
-    //cpptest.set_msg("Testing from C++\n");
-    //cpptest.print_msg();
     kernel_loop();
 }
 

@@ -139,7 +139,7 @@ void clear_row(uint8_t row) {
 
 void clear_screen() {
     set_screen_color(TTY_BLACK);
-    move_cursor(0,0);
+    cursor_move(0,0);
 }
 
 
@@ -148,7 +148,7 @@ void newline() {
     if (current_row >= ROW_SIZE - 1)
         scroll();
     else
-        move_cursor(0, current_row + 1);
+        cursor_move(0, current_row + 1);
 }
 
 
@@ -167,11 +167,11 @@ void scroll() {
         );
     }
     clear_row(ROW_SIZE - 1);
-    move_cursor(0, ROW_SIZE - 1);
+    cursor_move(0, ROW_SIZE - 1);
 }
 
 
-void enable_cursor(uint8_t cursor_start, uint8_t cursor_end) {
+void cursor_enable(uint8_t cursor_start, uint8_t cursor_end) {
     outb(VGA_ADDRESS_PORT, 0x0A);
     outb(VGA_DATA_PORT, (inb(VGA_DATA_PORT) & 0xC0) | cursor_start);
     outb(VGA_ADDRESS_PORT, 0x0B);
@@ -179,7 +179,7 @@ void enable_cursor(uint8_t cursor_start, uint8_t cursor_end) {
 }
 
 
-void disable_cursor() {
+void cursor_disable() {
     outb(VGA_ADDRESS_PORT, 0x0A);
     outb(VGA_DATA_PORT, 0x20);
 }
@@ -190,7 +190,7 @@ void cursor_advance() {
     if ((pos / 2) >= (COL_SIZE * ROW_SIZE))
         scroll();
     else {
-        move_cursor(
+        cursor_move(
             calc_col(pos), 
             calc_row(pos)
         );
@@ -201,7 +201,7 @@ void cursor_advance() {
 void cursor_retreat() {
     uint16_t pos = get_cursor_pos();
     if (pos != 0) {
-        move_cursor(
+        cursor_move(
             calc_col(pos-2), 
             calc_row(pos-2)
         );
@@ -217,14 +217,14 @@ bool cursor_valid() {
 }
 
 
-void move_cursor(uint8_t col, uint8_t row) {
+void cursor_move(uint8_t col, uint8_t row) {
     if (!cursor_valid()) {
         clear_screen();
         error_msg("Cursor out of bounds");
     }
     else if (cursor_valid() && !pos_valid(col, row)) {
         error_msg("Illegal cursor position");
-        move_cursor(
+        cursor_move(
             calc_col(get_cursor_pos()),
             calc_row(get_cursor_pos())
         );

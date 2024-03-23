@@ -55,12 +55,12 @@ void tab();
 void scroll();
 
 // Cursor manipulation
-void enable_cursor(uint8_t cursor_start, uint8_t cursor_end);
-void disable_cursor();
+void cursor_enable(uint8_t cursor_start, uint8_t cursor_end);
+void cursor_disable();
 void cursor_advance();
 void cursor_retreat();
 bool cursor_valid();
-void move_cursor(uint8_t col, uint8_t row);
+void cursor_move(uint8_t col, uint8_t row);
 uint16_t get_cursor_pos();
 
 // Basic CLI setup

@@ -42,12 +42,13 @@ enum KB_SPECIAL_KEY {
 
 typedef struct {
     queue_t key_buffer;
-    queue_t special_buffer;
     bool buffer_full;
 } keyboard_t;
 
 void keyboard_init();
 bool keyboard_performed_event();
 keyboard_t *keyboard_get();
+bool keyboard_to_char(uint8_t scancode, char *c);
+bool keyboard_is_special(uint8_t scancode);
 
 #endif

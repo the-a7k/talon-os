@@ -80,9 +80,12 @@ void isr_setup() {
 void isr_handler(registers_t *reg) {
     char int_count[4];
     itoa(reg->int_num, int_count);
-    kprint_color("The system has halted! (int ", TTY_BLACK, TTY_RED);
-    kprint_color(int_count, TTY_BLACK, TTY_RED);
-    kprint_color(")\n", TTY_BLACK, TTY_RED);
+    clear_screen();
+    set_screen_color(TTY_BLUE);
+    kprint_color("The system has halted! (int ", TTY_BLUE, TTY_WHITE);
+    kprint_color(int_count, TTY_BLUE, TTY_WHITE);
+    kprint_color(")\n", TTY_BLUE, TTY_WHITE);
+    cursor_disable();
     asm("hlt");
 }
 
@@ -95,7 +98,7 @@ void interrupt_handler_install(uint8_t num, isr_t handler) {
 void irq_handler(registers_t *reg) {
     if (reg->int_num >= 40)
         outb(0xA0, 0x20);  // Slave
-    outb(0x20, 0x20);  // Master
+    outb(0x20, 0x20);      // Master
 
     if (interrupt_handlers[reg->int_num] != 0) {
         isr_t handler = interrupt_handlers[reg->int_num];
