@@ -2,8 +2,7 @@
 #include "../include/tty.h"
 #include "../include/ports.h"
 #include "../include/mem.h"
-#include "../include/utility.h"
-#include "../include/command.h"
+#include "../include/string.h"
 
 #define VIDEO_MEMORY 0xb8000
 #define VGA_ADDRESS_PORT 0x3d4
@@ -63,6 +62,13 @@ void kprintint(int num) {
     char int_build[32];
     itoa(num, int_build);
     kprint(int_build);
+}
+
+
+void kprinthex(int num) {
+    char hex_build[32];
+    htoa(num, hex_build);
+    kprint(hex_build);
 }
 
 
@@ -245,11 +251,4 @@ uint16_t get_cursor_pos() {
     outb(VGA_ADDRESS_PORT, VGA_LOW);
     pos += inb(VGA_DATA_PORT);
     return pos * 2;
-}
-
-
-void tty_setup() {
-    clear_screen();
-    kprint_color("Welcome to talonOS! Type 'help' to get started.\n", TTY_BLACK, TTY_LIGHT_BLUE);
-    kprint((char *)CLI_PREFIX);
 }

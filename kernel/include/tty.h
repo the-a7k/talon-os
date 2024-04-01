@@ -32,6 +32,7 @@ void kprint_color(char *str, uint8_t bg, uint8_t fg);
 void kprint(char *str);
 void kputchar(char c);
 void kprintint(int num);
+void kprinthex(int num);
 void error_msg(char *reason);
 
 // Screen position calculations

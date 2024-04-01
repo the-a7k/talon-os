@@ -11,7 +11,7 @@
 #define PIT_CHANNEL_1 0x41
 #define PIT_CHANNEL_2 0x42
 #define PIT_COMMAND 0x43
-// Macros also used in speaker.c
+// Macros also used in buzzer.h
 
 void timer_init();
 uint32_t timer_get_tick();

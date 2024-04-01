@@ -1,16 +1,19 @@
-# Wrapper for compile.py
+# Wrapper for Python compile worker
+
+PY_CC_PATH = compile.py
+PY_EXEC = python3
 
 all:
-	python3 compile.py os_all
+	$(PY_EXEC) $(PY_CC_PATH) os_all
 
 build:
-	python3 compile.py os_build
+	$(PY_EXEC) $(PY_CC_PATH) os_build
 
 iso:
-	python3 compile.py os_iso
+	$(PY_EXEC) $(PY_CC_PATH) os_iso
 
 run:
-	python3 compile.py os_run
+	$(PY_EXEC) $(PY_CC_PATH) os_run
 
 clean:
-	python3 compile.py os_clean
+	$(PY_EXEC) $(PY_CC_PATH) os_clean

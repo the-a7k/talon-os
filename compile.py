@@ -1,23 +1,29 @@
 # Python script as a substitute for Makefile
-# Makefiles are simple and much more efficient, but I cannot be bothered learning it...
+# Makefiles are simple and much more efficient, but I can't be bothered learning it...
 
 import glob
 import os
 import sys
 
-BOOT_SRC = "boot/boot.asm"
-KERNEL_ROOT_SRC = "kernel/"
-LINKER_SRC = "linker.ld"
-
-BUILD_DEST = "build"
+# Directory locations
+BUILD_DEST = "build/"
 OBJ_DEST = "build/obj/"
-ISO_DEST = "build/talon.iso"
-GRUB_DEST = "build/iso/boot/grub"
-KERNEL_DEST = "build/talon.bin"
+GRUB_DEST = "build/grub/boot/grub/"
+GRUB_ROOT_SRC = "build/grub/"
+KERNEL_ROOT_SRC = "kernel/"
 
+# Specific file locations
+ISO_DEST = "build/talon.iso"
+KERNEL_DEST = "build/talon.bin"
+BOOT_SRC = "boot/boot.asm"
+LINKER_SRC = "linker.ld"
+GRUB_SRC = "grub.cfg"
+
+# Compile command/parameters
 GCC_COMP = "gcc -m32 -ffreestanding -c"
 GPP_COMP = "g++ -m32 -ffreestanding -c"
 NASM_COMP = "nasm -f elf32"
+LINKER_COMP = "ld -m elf_i386 -T"
 
 QEMU_ARGS = "-audiodev pa,id=speaker -machine pcspk-audiodev=speaker"
 
@@ -41,7 +47,7 @@ def os_build():
     print(f"\n[Compilation start]\n")
 
     os.makedirs(OBJ_DEST, exist_ok=True)
-    cmdout(f"nasm -f elf32 {BOOT_SRC} -o {OBJ_DEST}boot.o")
+    cmdout(f"{NASM_COMP} {BOOT_SRC} -o {OBJ_DEST}boot.o")
 
     # Find source files and compile them into objects
     c_files = glob.glob(KERNEL_ROOT_SRC + '**/*.c', recursive=True)
@@ -67,7 +73,7 @@ def os_build():
         f"{OBJ_DEST}{os.path.splitext(os.path.basename(file))[0]}.o" 
         for file in c_files + cpp_files + asm_files])
 
-    cmdout(f"ld -m elf_i386 -T {LINKER_SRC} -o {KERNEL_DEST} {OBJ_DEST}boot.o {objects}")
+    cmdout(f"{LINKER_COMP} {LINKER_SRC} -o {KERNEL_DEST} {OBJ_DEST}boot.o {objects}")
     print(f"\n[Compilation end]\n")
 
 
@@ -75,9 +81,9 @@ def os_iso():
     # Creating a bootable ISO by utilizing grub-mkrescue
     print(f"\n[ISO generation start]\n")
     os.makedirs(GRUB_DEST, exist_ok=True)
-    cmdout(f"cp grub.cfg {GRUB_DEST}")
+    cmdout(f"cp {GRUB_SRC} {GRUB_DEST}")
     cmdout(f"cp {KERNEL_DEST} {GRUB_DEST}")
-    cmdout(f"grub-mkrescue -o {ISO_DEST} build/iso")
+    cmdout(f"grub-mkrescue -o {ISO_DEST} {GRUB_ROOT_SRC}")
     print(f"\n[ISO generation end]\n")
 
 
@@ -96,6 +102,4 @@ def os_all():
 
 if __name__ == "__main__":
     args = sys.argv
-    # args[1] = function name
-    # args[2:] = function args
     globals()[args[1]](*args[2:])

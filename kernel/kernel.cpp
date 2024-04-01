@@ -2,9 +2,9 @@ extern "C" {
     #include "include/isr.h"
     #include "include/tty.h"
     #include "include/timer.h"
-    #include "include/speaker.h"
+    #include "include/buzzer.h"
     #include "include/keyboard.h"
-    #include "include/command.h"
+    #include "include/shell.h"
 }
 
 
@@ -33,9 +33,9 @@ class CppTesting {
 
 
 extern "C" void kernel_main() {
-    tty_setup();
     isr_setup();
     irq_setup();
+    shell_setup();
     kernel_loop();
 }
 
@@ -43,11 +43,10 @@ extern "C" void kernel_main() {
 void kernel_loop() {
     for (;;) {
         cpu_sleep(1);
-
         if (keyboard_performed_event()) {
-            command_key_handler(keyboard_get());
+            shell_key_handler(keyboard_get());
             if (keyboard_get()->buffer_full)
-                speaker_play(250,150);  // Handled by command, should not trigger
+                buzzer_play(250,150);  // Handled by command, should not trigger
         }
     }
 }

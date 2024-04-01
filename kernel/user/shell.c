@@ -1,11 +1,10 @@
 #include <stddef.h>
-#include "../include/command.h"
+#include "../include/shell.h"
 #include "../include/tty.h"
 #include "../include/ports.h"
 #include "../include/timer.h"
-#include "../include/speaker.h"
+#include "../include/buzzer.h"
 #include "../include/string.h"
-#include "../include/utility.h"
 #include "../include/queue.h"
 
 #define COMMAND_MAXSIZE 128
@@ -20,10 +19,11 @@ static void cmd_help() {
     kprint_color("List of available commands:\n", TTY_BLACK, TTY_LIGHT_GREEN);
     kprint("\ttime      (show uptime in seconds and ticks)\n");
     kprint("\tsleep     (beep and pause the CPU for 3 seconds)\n");
-    kprint("\twhoami    (show current user)\n");
     kprint("\tcls       (clear screen)\n");
     kprint("\tcrash     (crash the system with ISR handler)\n");
     kprint("\tshutdown  (shut down VM machine)\n");
+    kprint("\treboot    (restart VM machine)\n");
+    kprint("\tdebug     (enter keyboard debug mode)\n");
     kprint("\thelp      (show list of commands)");
 }
 
@@ -34,7 +34,6 @@ static void cmd_time() {
     kprint_color("Uptime: ", TTY_BLACK, TTY_CYAN);
     kprint_color(tick_tmp, TTY_BLACK, TTY_CYAN);
     kprint_color(" seconds ", TTY_BLACK, TTY_CYAN);
-
     kprint_color("(IRQ ticks: ", TTY_BLACK, TTY_BROWN);
     itoa(timer_get_tick(), tick_tmp);
     kprint_color(tick_tmp, TTY_BLACK, TTY_BROWN);
@@ -42,19 +41,67 @@ static void cmd_time() {
 }
 
 
+
 static void cmd_sleep() {
     kprint_color("Sleeping for 3 seconds...\n", TTY_BLACK, TTY_MAGENTA);
-    speaker_play(500,100);
-    speaker_play(800,100);
+    buzzer_play(500,100);
+    buzzer_play(800,100);
     cpu_sleep(3000-200);
     kprint_color("Resumed!", TTY_BLACK, TTY_LIGHT_MAGENTA);
-    speaker_play(800,100);
-    speaker_play(500,100);
+    buzzer_play(800,100);
+    buzzer_play(500,100);
 }
 
 
-static void cmd_whoami() {
-    kprint_color("kernel", TTY_BLACK, TTY_WHITE);
+static void cmd_reboot() {
+    kprint_color("Restarting...", TTY_BLACK, TTY_LIGHT_BLUE);
+    cpu_sleep(200);
+    asm("cli");
+    outb(0x64, 0xFE);  // CPU reboot
+}
+
+
+static void cmd_debug() {
+    kprint_color("Keyboard debug mode (press ESC to abort)\n", TTY_BLACK, TTY_CYAN);
+    kprint_color("Flushing key buffer...\n\n", TTY_BLACK, TTY_BLUE);
+    queue_init(&keyboard_get()->key_buffer);
+    bool kb_debug_stop_flag = false;
+
+    while (!kb_debug_stop_flag) {
+        if (keyboard_performed_event()) {
+            queue_element_t sc = 0;
+
+            while (!queue_is_empty(&keyboard_get()->key_buffer)) {
+                if (!queue_get_front(&keyboard_get()->key_buffer, &sc)) {
+                    kprint_color("Buffer error (abort)\n", TTY_BLACK, TTY_RED);
+                    kb_debug_stop_flag = true;
+                    break;
+                }
+                else if (sc == KEY_ESCAPE) {
+                    kb_debug_stop_flag = true;
+                    break;
+                }
+                queue_pop(&keyboard_get()->key_buffer);
+
+                kprint("INT: ");
+                kprintint(sc);
+
+                kprint("\tHEX: ");
+                kprinthex(sc);
+
+                kprint("\tCHAR: ");
+                char sc_tmp = 0;
+                keyboard_to_char(sc, &sc_tmp);
+                kputchar(sc_tmp);
+
+                newline();
+            }
+            newline();
+        }
+    }
+    kprint_color("Flushing key buffer...\n", TTY_BLACK, TTY_BLUE);
+    queue_init(&keyboard_get()->key_buffer);
+    kprint_color("Debug end", TTY_BLACK, TTY_CYAN);
 }
 
 
@@ -67,6 +114,11 @@ static void command_backspace() {
 }
 
 
+static void shell_print_prefix() {
+    kprint((char *)CLI_PREFIX);
+}
+
+
 static void command_overflow_handler(keyboard_t *ctx) {
     if (!ctx)
         return;
@@ -74,18 +126,16 @@ static void command_overflow_handler(keyboard_t *ctx) {
     queue_element_t process_command = 0;
     if (queue_get_front(&ctx->key_buffer, &process_command)) {
         if (process_command == KEY_ENTER)
-            command_execute(command_buffer);
+            shell_execute(command_buffer);
         else if (process_command == KEY_BACKSPACE) {
             command_backspace();
         }
     }
-    
-    // Keyboard buffer reset
-    queue_init(&ctx->key_buffer);
+    queue_init(&ctx->key_buffer);  // Keyboard buffer reset
 }
 
 
-void command_key_handler(keyboard_t *ctx) {
+void shell_key_handler(keyboard_t *ctx) {
     if (!ctx || queue_is_empty(&ctx->key_buffer))
         return;
     
@@ -119,9 +169,11 @@ void command_key_handler(keyboard_t *ctx) {
                     break;
                 case(KEY_ENTER):
                     if (strlen(command_buffer))
-                        command_execute(command_buffer);
-                    else 
+                        shell_execute(command_buffer);
+                    else {
                         newline();
+                        shell_print_prefix();
+                    }
                     break;
                 case(KEY_TAB):
                     tab();
@@ -133,7 +185,7 @@ void command_key_handler(keyboard_t *ctx) {
 }
 
 
-void command_execute(const char *command) {
+void shell_execute(const char *command) {
     char base_command[COMMAND_MAXSIZE];
     strwipe(base_command);
     newline();
@@ -150,9 +202,6 @@ void command_execute(const char *command) {
     if (strcmp(base_command, "time") == 0)
         cmd_time();
 
-    else if (strcmp(base_command, "whoami") == 0)
-        cmd_whoami();
-
     else if (strcmp(base_command, "cls") == 0)
         clear_screen();
 
@@ -163,9 +212,14 @@ void command_execute(const char *command) {
         outw(0x604, 0x2000);  // Temporary solution for QEMU
         error_msg("Incorrect shutdown command");
     }
+    else if (strcmp(base_command, "reboot") == 0)
+        cmd_reboot();
 
     else if (strcmp(base_command, "crash") == 0)
         asm("int $18");
+
+    else if (strcmp(base_command, "debug") == 0)
+        cmd_debug();
 
     else if (strcmp(base_command, "help") == 0)
         cmd_help();
@@ -177,5 +231,12 @@ void command_execute(const char *command) {
 
     strwipe(command_buffer);
     kprint("\n\n");
-    kprint((char *)CLI_PREFIX);
+    shell_print_prefix();
+}
+
+
+void shell_setup() {
+    clear_screen();
+    kprint_color("Welcome to talonOS! Type 'help' to get started.\n", TTY_BLACK, TTY_LIGHT_BLUE);
+    shell_print_prefix();
 }

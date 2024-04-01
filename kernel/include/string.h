@@ -4,6 +4,9 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+void itoa(int num, char *str);
+void htoa(int num, char *str);
+
 // String functions
 size_t strlen(const char *str);
 void strrev(char *str);

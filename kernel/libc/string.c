@@ -2,7 +2,51 @@
 #include "../include/string.h"
 #include "../include/mem.h"
 
-#define ASCII_CAPITAL_OFFSET 32
+
+void itoa(int num, char *str) {
+    bool is_negative = false;
+    if (num < 0) {
+        is_negative = true;
+        num = num * (-1);
+    }
+
+    size_t i = 0;
+    do {
+        int digit = num % 10;
+        num = num / 10;
+        str[i++] = '0' + digit;
+    } while (num != 0);
+
+    if (is_negative)
+       str[i++] = '-';
+
+    str[i++] = '\0';
+    strrev(str);
+}
+
+
+void htoa(int num, char *str) {
+    strcat(str, "0x");
+    uint8_t digits = 0;
+    int32_t current;
+
+    for (size_t i = 28; i > 0; i -= 4) {
+        current = (num >> i) & 0xF;
+        if (current == 0 && digits == 0) 
+            continue;
+        digits = 1;
+        if (current >= 0xA) 
+            charcat(str, current - 0xA + 'a');
+        else 
+            charcat(str, current + '0');
+    }
+
+    current = num & 0xF;
+    if (current >= 0xA) 
+        charcat(str, current - 0xA + 'a');
+    else 
+        charcat(str, current + '0');
+}
 
 
 // String functions
@@ -76,11 +120,11 @@ void charcat(char *str, const char to_add) {
 
 void chartolower(char *c) {
     if (*c >= 'A' && *c <= 'Z') 
-        *c += ASCII_CAPITAL_OFFSET;
+        *c += 32;  // 32 = ASCII lower/upper offset
 }
 
 
 void chartoupper(char *c) {
     if (*c >= 'a' && *c <= 'z')
-       *c -= ASCII_CAPITAL_OFFSET;
+       *c -= 32;
 }

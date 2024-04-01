@@ -4,10 +4,10 @@
 #include "../include/isr.h"
 
 
-static bool kb_event_flag = false;      // Triggers on every successful key or function event
+static bool kb_event_flag = false;      // Triggers on every keyboard interrupt
 static keyboard_t kb_event = {          // Struct of currently unhandled keyboard events
-    .key_buffer = { 0 },                // Buffer with scancodes
-    .buffer_full = false                // Flag indicating full buffer
+    .key_buffer = { 0 },                // Scancode buffer
+    .buffer_full = false
 };
 
 
@@ -40,7 +40,7 @@ keyboard_t *keyboard_get() {
 }
 
 
-bool keyboard_to_char(uint8_t scancode, char *c) {
+bool keyboard_to_char(const uint8_t scancode, char *c) {
     if (!keyboard_is_special(scancode)) {
         *c = kb_scancode_keys[scancode];
         return true;
@@ -49,7 +49,7 @@ bool keyboard_to_char(uint8_t scancode, char *c) {
 }
 
 
-bool keyboard_is_special(uint8_t scancode) {
+bool keyboard_is_special(const uint8_t scancode) {
     return !kb_scancode_keys[scancode];
 }
 

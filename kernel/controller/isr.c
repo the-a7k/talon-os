@@ -4,7 +4,7 @@
 #include "../include/keyboard.h"
 #include "../include/tty.h"
 #include "../include/ports.h"
-#include "../include/utility.h"
+#include "../include/string.h"
 
 #define INTTERUPT_HANDLER_COUNT 256
 
