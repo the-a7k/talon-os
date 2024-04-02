@@ -6,7 +6,7 @@
 
 #define CLI_PREFIX "kernel>"
 
-void shell_key_handler(keyboard_t *ctx);
+void shell_key_handler();
 void shell_execute(const char *command);
 void shell_setup();
 

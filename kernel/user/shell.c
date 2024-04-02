@@ -5,7 +5,6 @@
 #include "../include/timer.h"
 #include "../include/buzzer.h"
 #include "../include/string.h"
-#include "../include/queue.h"
 
 #define COMMAND_MAXSIZE 128
 #define COMMAND_HISTORY_MAXSIZE 16
@@ -64,15 +63,15 @@ static void cmd_reboot() {
 static void cmd_debug() {
     kprint_color("Keyboard debug mode (press ESC to abort)\n", TTY_BLACK, TTY_CYAN);
     kprint_color("Flushing key buffer...\n\n", TTY_BLACK, TTY_BLUE);
-    queue_init(&keyboard_get()->key_buffer);
+    keyboard_buffer_flush();
     bool kb_debug_stop_flag = false;
 
     while (!kb_debug_stop_flag) {
         if (keyboard_performed_event()) {
-            queue_element_t sc = 0;
+            scancode_t sc = 0;
 
-            while (!queue_is_empty(&keyboard_get()->key_buffer)) {
-                if (!queue_get_front(&keyboard_get()->key_buffer, &sc)) {
+            while (!keyboard_buffer_empty()) {
+                if (!keyboard_buffer_next(&sc)) {
                     kprint_color("Buffer error (abort)\n", TTY_BLACK, TTY_RED);
                     kb_debug_stop_flag = true;
                     break;
@@ -81,7 +80,7 @@ static void cmd_debug() {
                     kb_debug_stop_flag = true;
                     break;
                 }
-                queue_pop(&keyboard_get()->key_buffer);
+                keyboard_buffer_pop();
 
                 kprint("INT: ");
                 kprintint(sc);
@@ -90,9 +89,9 @@ static void cmd_debug() {
                 kprinthex(sc);
 
                 kprint("\tCHAR: ");
-                char sc_tmp = 0;
-                keyboard_to_char(sc, &sc_tmp);
-                kputchar(sc_tmp);
+                char sc_temp = 0;
+                scancode_to_char(sc, &sc_temp);
+                kputchar(sc_temp);
 
                 newline();
             }
@@ -100,7 +99,7 @@ static void cmd_debug() {
         }
     }
     kprint_color("Flushing key buffer...\n", TTY_BLACK, TTY_BLUE);
-    queue_init(&keyboard_get()->key_buffer);
+    keyboard_buffer_flush();
     kprint_color("Debug end", TTY_BLACK, TTY_CYAN);
 }
 
@@ -119,43 +118,40 @@ static void shell_print_prefix() {
 }
 
 
-static void command_overflow_handler(keyboard_t *ctx) {
-    if (!ctx)
-        return;
-
-    queue_element_t process_command = 0;
-    if (queue_get_front(&ctx->key_buffer, &process_command)) {
+static void shell_key_handler_overflow() {
+    scancode_t process_command = 0;
+    if (keyboard_buffer_next(&process_command)) {
         if (process_command == KEY_ENTER)
             shell_execute(command_buffer);
         else if (process_command == KEY_BACKSPACE) {
             command_backspace();
         }
     }
-    queue_init(&ctx->key_buffer);  // Keyboard buffer reset
+    keyboard_buffer_flush();  // Keyboard buffer reset
 }
 
 
-void shell_key_handler(keyboard_t *ctx) {
-    if (!ctx || queue_is_empty(&ctx->key_buffer))
+void shell_key_handler() {
+    if (keyboard_buffer_empty())
         return;
     
-    queue_element_t current_key = 0;
+    scancode_t current_key = 0;
     char converted = 0;
 
-    while (queue_get_front(&ctx->key_buffer, &current_key)) {
+    while (keyboard_buffer_next(&current_key)) {
         if (strlen(command_buffer) == COMMAND_MAXSIZE - 1) {
-            command_overflow_handler(ctx);
+            shell_key_handler_overflow();
             return;
         }
 
-        else if (keyboard_to_char(current_key, &converted)) {
+        else if (scancode_to_char(current_key, &converted)) {
             if (uppercase_flag)
                 chartoupper(&converted);
             kputchar(converted);
             charcat(command_buffer, converted);
         }
 
-        else if (keyboard_is_special(current_key)) {
+        else if (scancode_is_special(current_key)) {
             switch (current_key) {
                 case(KEY_CAPSLOCK):
                 case(KEY_LSHIFT):
@@ -180,7 +176,7 @@ void shell_key_handler(keyboard_t *ctx) {
                     break;
             }
         }
-        queue_pop(&ctx->key_buffer);
+        keyboard_buffer_pop();
     }
 }
 

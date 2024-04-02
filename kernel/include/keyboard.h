@@ -3,7 +3,8 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include "../include/queue.h"
+
+#define KEYBOARD_BUFFER_MAXSIZE 64
 
 enum KB_SPECIAL_KEY {
     KEY_NULL = 0,
@@ -23,7 +24,7 @@ enum KB_SPECIAL_KEY {
 
     KEY_LCTRL= 0x1D,
     KEY_RCTRL = 0xE01D,
-    KEY_ALT = 0x38,  // Left Alt + AltGr
+    KEY_ALT = 0x38,
 
     // Function keys
     KEY_F1 = 0x3B,
@@ -40,15 +41,29 @@ enum KB_SPECIAL_KEY {
     KEY_F12 = 0x58,
 };
 
+typedef uint8_t scancode_t;
+
 typedef struct {
-    queue_t key_buffer;
-    bool buffer_full;
+    size_t front_pos;
+    size_t back_pos;
+    scancode_t buffer[KEYBOARD_BUFFER_MAXSIZE];
 } keyboard_t;
 
+
 void keyboard_init();
+
+// Conversion functions
+bool scancode_to_char(const scancode_t sc, char *c);
+bool scancode_is_special(const scancode_t sc);
+
+// Keyboard buffer functions
 bool keyboard_performed_event();
-keyboard_t *keyboard_get();
-bool keyboard_to_char(uint8_t scancode, char *c);
-bool keyboard_is_special(uint8_t scancode);
+scancode_t *keyboard_buffer_get();
+void keyboard_buffer_flush();
+bool keyboard_buffer_empty();
+bool keyboard_buffer_full();
+bool keyboard_buffer_next(scancode_t *sc);
+bool keyboard_buffer_last(scancode_t *sc);
+bool keyboard_buffer_pop();
 
 #endif

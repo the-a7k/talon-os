@@ -28,7 +28,7 @@ uint32_t timer_calc_tick(uint32_t ms) {
 
 
 void cpu_sleep(uint32_t ms) {
-    volatile uint32_t tick_sleep_end = timer_calc_tick(
+    uint32_t tick_sleep_end = timer_calc_tick(
         timer_calc_ms(timer_get_tick()) + ms
     );
     do {
@@ -48,7 +48,7 @@ void timer_init() {
     uint8_t low = (uint8_t)(PIT_FREQ_DIVISOR & 0xFF);
     uint8_t high = (uint8_t)((PIT_FREQ_DIVISOR >> 8) & 0xFF);
 
-    outb(PIT_COMMAND, 0x36);  // Command port
+    outb(PIT_COMMAND, 0x36);
     outb(PIT_CHANNEL_0, low);
     outb(PIT_CHANNEL_0, high);
 }

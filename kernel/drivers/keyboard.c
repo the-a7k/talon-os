@@ -4,11 +4,8 @@
 #include "../include/isr.h"
 
 
-static bool kb_event_flag = false;      // Triggers on every keyboard interrupt
-static keyboard_t kb_event = {          // Struct of currently unhandled keyboard events
-    .key_buffer = { 0 },                // Scancode buffer
-    .buffer_full = false
-};
+static bool keyboard_event_flag = false;      // Triggers on every keyboard interrupt
+keyboard_t keyboard_main = { 0 };             // Keyboard key buffer handler
 
 
 static uint8_t kb_scancode_keys[] = {
@@ -27,45 +24,101 @@ static uint8_t kb_scancode_keys[] = {
 
 
 bool keyboard_performed_event() {
-    if (kb_event_flag) {
-        kb_event_flag = false;
+    if (keyboard_event_flag) {
+        keyboard_event_flag = false;
         return true;
     }
     return false;
 }
 
 
-keyboard_t *keyboard_get() {
-    return &kb_event;
+scancode_t *keyboard_buffer_get() {
+    return &keyboard_main.buffer;
 }
 
 
-bool keyboard_to_char(const uint8_t scancode, char *c) {
-    if (!keyboard_is_special(scancode)) {
-        *c = kb_scancode_keys[scancode];
+bool scancode_to_char(scancode_t sc, char *c) {
+    if (!scancode_is_special(sc)) {
+        *c = kb_scancode_keys[sc];
         return true;
     }
     return false;
 }
 
 
-bool keyboard_is_special(const uint8_t scancode) {
-    return !kb_scancode_keys[scancode];
+bool scancode_is_special(scancode_t sc) {
+    // Returns false if scancode is a character
+    return !kb_scancode_keys[sc];
+}
+
+
+void keyboard_buffer_flush() {
+    // Works as initializer or destoyer, unhandled scancodes will stay in buffer 
+    keyboard_main.front_pos = keyboard_main.back_pos = 0;
+}
+
+
+bool keyboard_buffer_empty() {
+    return keyboard_main.front_pos == keyboard_main.back_pos;
+}
+
+
+bool keyboard_buffer_full() {
+    return (keyboard_main.back_pos + 1) % KEYBOARD_BUFFER_MAXSIZE == keyboard_main.front_pos;
+}
+
+
+static bool keyboard_buffer_push(const scancode_t sc) {
+    // Needs to be static, push used only by keyboard interrupt itself
+    if (keyboard_buffer_full(keyboard_main))
+        return false;
+
+    const size_t next_pos = (keyboard_main.back_pos + 1) % KEYBOARD_BUFFER_MAXSIZE;
+    keyboard_main.buffer[keyboard_main.back_pos] = sc;
+    keyboard_main.back_pos = next_pos;
+    return true;
+}
+
+
+bool keyboard_buffer_pop() {
+    if (!keyboard_buffer_empty(keyboard_main)) {
+        keyboard_main.front_pos = (keyboard_main.front_pos + 1) % KEYBOARD_BUFFER_MAXSIZE;
+        return true;
+    }
+    return false;
+}
+
+
+
+bool keyboard_buffer_next(scancode_t *sc) {
+    // Get next (oldest) value and save it
+    if (!keyboard_buffer_empty(keyboard_main) && sc) {
+        *sc = keyboard_main.buffer[keyboard_main.front_pos];
+        return true;
+    }
+    return false;
+}
+
+
+bool keyboard_buffer_last(scancode_t *sc) {
+    // Get last (latest) value and save it
+    if (!sc || keyboard_buffer_empty(keyboard_main))
+        return false;
+
+    const size_t last_pos = (keyboard_main.back_pos) ? (keyboard_main.back_pos - 1) : (KEYBOARD_BUFFER_MAXSIZE - 1);
+    *sc = keyboard_main.buffer[last_pos];
+    return true;
 }
 
 
 static void keyboard_callback(registers_t *reg) {
-    uint8_t scancode = inb(0x60);
-    
-    if (!queue_push(&kb_event.key_buffer, scancode))
-        kb_event.buffer_full = true;
-    else
-        kb_event.buffer_full = false;
-    kb_event_flag = true;
+    scancode_t sc = inb(0x60);
+    keyboard_buffer_push(sc);
+    keyboard_event_flag = true;
 }
 
 
 void keyboard_init() {
     interrupt_handler_install(IRQ1, keyboard_callback);
-    queue_init(&kb_event.key_buffer);
+    keyboard_buffer_flush(&keyboard_main);
 }

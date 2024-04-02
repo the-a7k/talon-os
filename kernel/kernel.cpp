@@ -42,11 +42,11 @@ extern "C" void kernel_main() {
 
 void kernel_loop() {
     for (;;) {
-        cpu_sleep(1);
+        cpu_sleep(1);                       // Slowing down the main loop
         if (keyboard_performed_event()) {
-            shell_key_handler(keyboard_get());
-            if (keyboard_get()->buffer_full)
-                buzzer_play(250,150);  // Handled by command, should not trigger
+            shell_key_handler();            // Handle keyboard buffer, print output or process commands
+            if (keyboard_buffer_full())     
+                buzzer_play(250,200);       // Handled by shell handler, should not trigger
         }
     }
 }
