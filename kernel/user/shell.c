@@ -19,7 +19,7 @@ static bool shift_flag = false;
 static bool capslock_flag = false;
 
 
-static void sc_next_help() {
+static void cmd_help() {
     kprint_color("List of available commands:\n", TTY_BLACK, TTY_LIGHT_GREEN);
     kprint("\ttime      (show uptime in seconds and ticks)\n");
     kprint("\tsleep     (beep and pause the CPU for 3 seconds)\n");
@@ -32,7 +32,7 @@ static void sc_next_help() {
 }
 
 
-static void sc_next_time() {
+static void cmd_time() {
     char tick_tmp[32];
     itoa(timer_calc_sec(timer_get_tick()), tick_tmp);
     kprint_color("Uptime: ", TTY_BLACK, TTY_CYAN);
@@ -46,7 +46,7 @@ static void sc_next_time() {
 
 
 
-static void sc_next_sleep() {
+static void cmd_sleep() {
     kprint_color("Sleeping for 3 seconds...\n", TTY_BLACK, TTY_MAGENTA);
     buzzer_play(500,100);
     buzzer_play(800,100);
@@ -57,7 +57,7 @@ static void sc_next_sleep() {
 }
 
 
-static void sc_next_shutdown() {
+static void cmd_shutdown() {
     kprint_color("Shutting down...", TTY_BLACK, TTY_LIGHT_BLUE);
     cpu_sleep(200);
     outw(0x604, 0x2000);  // Temporary solution
@@ -65,7 +65,7 @@ static void sc_next_shutdown() {
 }
 
 
-static void sc_next_reboot() {
+static void cmd_reboot() {
     kprint_color("Rebooting...", TTY_BLACK, TTY_LIGHT_BLUE);
     cpu_sleep(200);
     outb(0x64, 0xFE);  // Temporary solution
@@ -73,7 +73,7 @@ static void sc_next_reboot() {
 }
 
 
-static void sc_next_debug() {
+static void cmd_debug() {
     kprint_color("Keyboard debug mode (press ESC to abort)\n", TTY_BLACK, TTY_CYAN);
     kprint_color("Flushing key buffer...\n\n", TTY_BLACK, TTY_BLUE);
     keyboard_buffer_flush();
@@ -216,28 +216,28 @@ void shell_execute(const char *command) {
     strtolower(base_command);
 
     if (strcmp(base_command, "time") == 0)
-        sc_next_time();
+        cmd_time();
 
     else if (strcmp(base_command, "cls") == 0)
         clear_screen();
 
     else if (strcmp(base_command, "sleep") == 0)
-        sc_next_sleep();
+        cmd_sleep();
 
     else if (strcmp(base_command, "shutdown") == 0)
-        sc_next_shutdown();
+        cmd_shutdown();
 
     else if (strcmp(base_command, "reboot") == 0)
-        sc_next_reboot();
+        cmd_reboot();
 
     else if (strcmp(base_command, "crash") == 0)
         asm("int $18");
 
     else if (strcmp(base_command, "debug") == 0)
-        sc_next_debug();
+        cmd_debug();
 
     else if (strcmp(base_command, "help") == 0)
-        sc_next_help();
+        cmd_help();
 
     else {
         kprint("Unknown command: ");
