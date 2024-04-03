@@ -6,26 +6,22 @@
 
 #define KEYBOARD_BUFFER_MAXSIZE 64
 
-enum KB_SPECIAL_KEY {
+enum KEYBOARD_SPECIAL_SCANCODE {
     KEY_NULL = 0,
-    
     // Command processing
     KEY_ESCAPE = 0x01,
     KEY_ENTER = 0x1C,
     KEY_TAB = 0x0F,
     KEY_BACKSPACE = 0x0E,
-
-    // Uppercase text handling
+    // Uppercase and shifting
     KEY_CAPSLOCK = 0x3A,
     KEY_LSHIFT = 0x2A,
     KEY_LSHIFT_UP = 0xAA,
     KEY_RSHIFT = 0x36,
     KEY_RSHIFT_UP = 0xB6,
-
-    KEY_LCTRL= 0x1D,
-    KEY_RCTRL = 0xE01D,
+    // Control keys
+    KEY_CTRL = 0x1D,
     KEY_ALT = 0x38,
-
     // Function keys
     KEY_F1 = 0x3B,
     KEY_F2 = 0x3C,
@@ -39,6 +35,8 @@ enum KB_SPECIAL_KEY {
     KEY_F10 = 0x44,
     KEY_F11 = 0x57,
     KEY_F12 = 0x58,
+    // Special keys
+    KEY_AWAIT_NEXT = 0xE0
 };
 
 typedef uint8_t scancode_t;
@@ -49,12 +47,14 @@ typedef struct {
     scancode_t buffer[KEYBOARD_BUFFER_MAXSIZE];
 } keyboard_t;
 
-
+// IRQ initialize
 void keyboard_init();
 
 // Conversion functions
 bool scancode_to_char(const scancode_t sc, char *c);
+bool scancode_to_shifted(const scancode_t sc, char *c);
 bool scancode_is_special(const scancode_t sc);
+bool scancode_can_shift(const scancode_t sc);
 
 // Keyboard buffer functions
 bool keyboard_performed_event();

@@ -16,6 +16,7 @@ void strwipe(char *str);
 void strpop(char *str);
 void strtolower(char *str);
 void strtoupper(char *str);
+char *strtok(char *str, const char *delim);
 
 // Char functions
 void charcat(char *str, const char to_add);

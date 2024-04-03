@@ -5,11 +5,11 @@
 
 
 static bool keyboard_event_flag = false;      // Triggers on every keyboard interrupt
-keyboard_t keyboard_main = { 0 };             // Keyboard key buffer handler
+keyboard_t keyboard_main = { 0 };             // Keyboard key buffer controller
 
 
-static uint8_t kb_scancode_keys[] = {
-    // Keyboard map of basic writeable characters indexed by scancode
+static const char keyboard_scancode_keys[255] = {
+    // Keyboard map of basic characters indexed by scancode
     0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 0, 0,    // 1234
     'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 0,             // QWERTY
     0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0,         // ASDF
@@ -22,6 +22,43 @@ static uint8_t kb_scancode_keys[] = {
     '0', '.',
 };
 
+static const char keyboard_scancode_keys_shift[255] = {
+    // Keyboard map of shiftable characters
+    0, 0, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', 0, 0,
+    'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 0,
+    0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~', 0,
+    '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?',
+};
+
+
+bool scancode_to_char(const scancode_t sc, char *c) {
+    if (!scancode_is_special(sc)) {
+        *c = keyboard_scancode_keys[sc];
+        return true;
+    }
+    return false;
+}
+
+
+bool scancode_to_shifted(const scancode_t sc, char *c) {
+    if (scancode_can_shift(sc)) {
+        *c = keyboard_scancode_keys_shift[sc];
+        return true;
+    }
+    return false;
+}
+
+
+bool scancode_is_special(const scancode_t sc) {
+    // Returns false if scancode is a character
+    return !keyboard_scancode_keys[sc];
+}
+
+
+bool scancode_can_shift(const scancode_t sc) {
+    return keyboard_scancode_keys_shift[sc];
+}
+
 
 bool keyboard_performed_event() {
     if (keyboard_event_flag) {
@@ -33,22 +70,7 @@ bool keyboard_performed_event() {
 
 
 scancode_t *keyboard_buffer_get() {
-    return &keyboard_main.buffer;
-}
-
-
-bool scancode_to_char(scancode_t sc, char *c) {
-    if (!scancode_is_special(sc)) {
-        *c = kb_scancode_keys[sc];
-        return true;
-    }
-    return false;
-}
-
-
-bool scancode_is_special(scancode_t sc) {
-    // Returns false if scancode is a character
-    return !kb_scancode_keys[sc];
+    return keyboard_main.buffer;
 }
 
 
@@ -112,7 +134,7 @@ bool keyboard_buffer_last(scancode_t *sc) {
 
 
 static void keyboard_callback(registers_t *reg) {
-    scancode_t sc = inb(0x60);
+    scancode_t sc = inb(0x60);  // Scancode location
     keyboard_buffer_push(sc);
     keyboard_event_flag = true;
 }

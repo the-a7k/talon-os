@@ -7,18 +7,12 @@ extern "C" {
     #include "include/shell.h"
 }
 
-
-// TODO: Add argc/argv to command
-
-
-extern "C" void kernel_main();
-void kernel_loop();
-
-
 class CppTesting {
-    //CppTesting cpptest;
-    //cpptest.set_msg("Testing from C++\n");
-    //cpptest.print_msg();
+    /*
+        CppTesting cpptest;
+        cpptest.set_msg("Testing from C++\n");
+        cpptest.print_msg();
+    */
     private:
         char *class_msg;
 
@@ -32,21 +26,37 @@ class CppTesting {
 };
 
 
-extern "C" void kernel_main() {
-    isr_setup();
-    irq_setup();
-    shell_setup();
-    kernel_loop();
-}
-
-
 void kernel_loop() {
     for (;;) {
         cpu_sleep(1);                       // Slowing down the main loop
         if (keyboard_performed_event()) {
-            shell_key_handler();            // Handle keyboard buffer, print output or process commands
+            shell_key_handler();            // Handle keyboard buffer, print output, process commands...
             if (keyboard_buffer_full())     
-                buzzer_play(250,200);       // Handled by shell handler, should not trigger
+                buzzer_play(250,200);       // Handled by shell, should not trigger
         }
     }
+}
+
+
+extern "C" void kernel_main() {
+    isr_setup();
+    irq_setup();
+    shell_setup();
+
+    /*
+    char cmd[] = "command -arg1 --arg2 /arg3";
+    char separators[] = "-/";
+    char *argv = strtok(cmd, separators);
+    int argc = 0;
+
+    while (argv) {
+        kprint(argv);
+        newline();
+        argv = strtok(NULL, separators);
+        ++argc;
+    }
+    kprintint(argc);
+    */
+
+    kernel_loop();
 }

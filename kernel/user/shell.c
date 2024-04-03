@@ -5,16 +5,21 @@
 #include "../include/timer.h"
 #include "../include/buzzer.h"
 #include "../include/string.h"
+#include "../include/ctype.h"
 
 #define COMMAND_MAXSIZE 128
 #define COMMAND_HISTORY_MAXSIZE 16
 
 static char command_buffer[COMMAND_MAXSIZE];
 static char *command_history[COMMAND_HISTORY_MAXSIZE];
-static bool uppercase_flag = false;
+
+// Key flags
+static bool await_next_flag = false;  // Some special keys interrupt twice with KEY_AWAIT_NEXT enum
+static bool shift_flag = false;
+static bool capslock_flag = false;
 
 
-static void cmd_help() {
+static void sc_next_help() {
     kprint_color("List of available commands:\n", TTY_BLACK, TTY_LIGHT_GREEN);
     kprint("\ttime      (show uptime in seconds and ticks)\n");
     kprint("\tsleep     (beep and pause the CPU for 3 seconds)\n");
@@ -27,7 +32,7 @@ static void cmd_help() {
 }
 
 
-static void cmd_time() {
+static void sc_next_time() {
     char tick_tmp[32];
     itoa(timer_calc_sec(timer_get_tick()), tick_tmp);
     kprint_color("Uptime: ", TTY_BLACK, TTY_CYAN);
@@ -41,7 +46,7 @@ static void cmd_time() {
 
 
 
-static void cmd_sleep() {
+static void sc_next_sleep() {
     kprint_color("Sleeping for 3 seconds...\n", TTY_BLACK, TTY_MAGENTA);
     buzzer_play(500,100);
     buzzer_play(800,100);
@@ -52,15 +57,23 @@ static void cmd_sleep() {
 }
 
 
-static void cmd_reboot() {
-    kprint_color("Restarting...", TTY_BLACK, TTY_LIGHT_BLUE);
+static void sc_next_shutdown() {
+    kprint_color("Shutting down...", TTY_BLACK, TTY_LIGHT_BLUE);
     cpu_sleep(200);
-    asm("cli");
-    outb(0x64, 0xFE);  // CPU reboot
+    outw(0x604, 0x2000);  // Temporary solution
+    error_msg("Incorrect shutdown command");
 }
 
 
-static void cmd_debug() {
+static void sc_next_reboot() {
+    kprint_color("Rebooting...", TTY_BLACK, TTY_LIGHT_BLUE);
+    cpu_sleep(200);
+    outb(0x64, 0xFE);  // Temporary solution
+    error_msg("Incorrect reboot command");
+}
+
+
+static void sc_next_debug() {
     kprint_color("Keyboard debug mode (press ESC to abort)\n", TTY_BLACK, TTY_CYAN);
     kprint_color("Flushing key buffer...\n\n", TTY_BLACK, TTY_BLUE);
     keyboard_buffer_flush();
@@ -69,7 +82,6 @@ static void cmd_debug() {
     while (!kb_debug_stop_flag) {
         if (keyboard_performed_event()) {
             scancode_t sc = 0;
-
             while (!keyboard_buffer_empty()) {
                 if (!keyboard_buffer_next(&sc)) {
                     kprint_color("Buffer error (abort)\n", TTY_BLACK, TTY_RED);
@@ -80,19 +92,15 @@ static void cmd_debug() {
                     kb_debug_stop_flag = true;
                     break;
                 }
+                char sc_temp = 0;
                 keyboard_buffer_pop();
-
                 kprint("INT: ");
                 kprintint(sc);
-
                 kprint("\tHEX: ");
                 kprinthex(sc);
-
                 kprint("\tCHAR: ");
-                char sc_temp = 0;
                 scancode_to_char(sc, &sc_temp);
                 kputchar(sc_temp);
-
                 newline();
             }
             newline();
@@ -119,11 +127,12 @@ static void shell_print_prefix() {
 
 
 static void shell_key_handler_overflow() {
-    scancode_t process_command = 0;
-    if (keyboard_buffer_next(&process_command)) {
-        if (process_command == KEY_ENTER)
+    // Will be called until command buffer wipe/pop
+    scancode_t sc_next = 0;
+    if (keyboard_buffer_next(&sc_next)) {
+        if (sc_next == KEY_ENTER)
             shell_execute(command_buffer);
-        else if (process_command == KEY_BACKSPACE) {
+        else if (sc_next == KEY_BACKSPACE) {
             command_backspace();
         }
     }
@@ -136,7 +145,7 @@ void shell_key_handler() {
         return;
     
     scancode_t current_key = 0;
-    char converted = 0;
+    char current_char = 0;
 
     while (keyboard_buffer_next(&current_key)) {
         if (strlen(command_buffer) == COMMAND_MAXSIZE - 1) {
@@ -144,21 +153,30 @@ void shell_key_handler() {
             return;
         }
 
-        else if (scancode_to_char(current_key, &converted)) {
-            if (uppercase_flag)
-                chartoupper(&converted);
-            kputchar(converted);
-            charcat(command_buffer, converted);
+        else if (await_next_flag) {
+            await_next_flag = false;
+        }
+
+        else if (scancode_to_char(current_key, &current_char)) {
+            // Caps-Lock can only do case conversion, shift can also convert non-alphabetic characters
+            if ((capslock_flag && shift_flag && !isalpha(current_char)) || (!capslock_flag && shift_flag))
+                scancode_to_shifted(current_key, &current_char);
+            else if (capslock_flag && !shift_flag)
+                chartoupper(&current_char);
+            kputchar(current_char);
+            charcat(command_buffer, current_char);
         }
 
         else if (scancode_is_special(current_key)) {
             switch (current_key) {
                 case(KEY_CAPSLOCK):
+                    capslock_flag = !capslock_flag;
+                    break;
                 case(KEY_LSHIFT):
                 case(KEY_LSHIFT_UP):
                 case(KEY_RSHIFT):
                 case(KEY_RSHIFT_UP):
-                    uppercase_flag = !uppercase_flag;
+                    shift_flag = !shift_flag;
                     break;
                 case(KEY_BACKSPACE):
                     command_backspace();
@@ -174,6 +192,8 @@ void shell_key_handler() {
                 case(KEY_TAB):
                     tab();
                     break;
+                case(KEY_AWAIT_NEXT):
+                    await_next_flag = true;
             }
         }
         keyboard_buffer_pop();
@@ -196,29 +216,28 @@ void shell_execute(const char *command) {
     strtolower(base_command);
 
     if (strcmp(base_command, "time") == 0)
-        cmd_time();
+        sc_next_time();
 
     else if (strcmp(base_command, "cls") == 0)
         clear_screen();
 
     else if (strcmp(base_command, "sleep") == 0)
-        cmd_sleep();
+        sc_next_sleep();
 
-    else if (strcmp(base_command, "shutdown") == 0) {
-        outw(0x604, 0x2000);  // Temporary solution for QEMU
-        error_msg("Incorrect shutdown command");
-    }
+    else if (strcmp(base_command, "shutdown") == 0)
+        sc_next_shutdown();
+
     else if (strcmp(base_command, "reboot") == 0)
-        cmd_reboot();
+        sc_next_reboot();
 
     else if (strcmp(base_command, "crash") == 0)
         asm("int $18");
 
     else if (strcmp(base_command, "debug") == 0)
-        cmd_debug();
+        sc_next_debug();
 
     else if (strcmp(base_command, "help") == 0)
-        cmd_help();
+        sc_next_help();
 
     else {
         kprint("Unknown command: ");

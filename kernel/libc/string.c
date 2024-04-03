@@ -49,7 +49,9 @@ void htoa(int num, char *str) {
 }
 
 
-// String functions
+/* String functions */
+
+
 size_t strlen(const char *str) {
     size_t size = 0;
     while (str[size] != '\0')
@@ -110,7 +112,52 @@ void strtoupper(char *str) {
 }
 
 
-// Char functions
+static bool strdelim(char c, const char *delim) {
+    // Helper function for strtok
+    while (*delim) {
+        if (c == *delim++)
+            return true;
+    }
+    return false;
+}
+
+char *strtok(char *str, const char *delim) {
+    static char *last_token = NULL;  // We need to keep the string context
+
+    if (!str)
+        str = last_token;
+    
+    // Updated str
+    if (!str)
+        return NULL;
+
+    // Skip delimeters
+    while (strdelim(*str, delim))
+        str++;
+
+    if (*str == '\0') {
+        last_token = NULL;
+        return NULL;
+    }
+
+    char *token = str;
+    while (*str && !strdelim(*str, delim))
+        str++;
+
+    if (*str) {
+        *str = '\0';
+        last_token = str + 1;
+    }
+    else
+        last_token = NULL;
+
+    return token;
+}
+
+
+/* Char functions */
+
+
 void charcat(char *str, const char to_add) {
     size_t length = strlen(str);
     str[length] = to_add;

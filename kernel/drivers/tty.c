@@ -4,9 +4,9 @@
 #include "../include/mem.h"
 #include "../include/string.h"
 
-#define VIDEO_MEMORY 0xb8000
-#define VGA_ADDRESS_PORT 0x3d4
-#define VGA_DATA_PORT 0x3d5
+#define VIDEO_MEMORY 0xB8000
+#define VGA_ADDRESS_PORT 0x3D4
+#define VGA_DATA_PORT 0x3D5
 #define VGA_HIGH 14
 #define VGA_LOW 15
 
@@ -240,7 +240,7 @@ void cursor_move(uint8_t col, uint8_t row) {
         outb(VGA_ADDRESS_PORT, VGA_HIGH);
         outb(VGA_DATA_PORT, (uint8_t)(pos >> 8));
         outb(VGA_ADDRESS_PORT, VGA_LOW);
-        outb(VGA_DATA_PORT, (uint8_t)(pos & 0xff));
+        outb(VGA_DATA_PORT, (uint8_t)(pos & 0xFF));
     }
 }
 
