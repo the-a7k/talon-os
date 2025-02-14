@@ -6,4 +6,5 @@
 *.sym
 *.old
 .DS_STORE
+.vs/
 build/

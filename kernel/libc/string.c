@@ -24,6 +24,25 @@ void itoa(int num, char *str) {
     strrev(str);
 }
 
+int atoi(char *str) {
+    int8_t sign = 1;                // Positive = 1 , negative = -1   
+    bool any_sign_flag = false;     // First occurence of any sign symbol         
+    int32_t retval = 0;
+    size_t i = 0;
+        
+    for (; str[i] == ' '; ++i);    // Skipping leading whitespace
+
+    if (str[i] == '+' || str[i] == '-')
+        sign = (str[i++] == '-') ? -1 : 1;
+
+    while (str[i] != '\0' && str[i] >= '0' && str[i] <= '9') {
+        retval = retval * 10 + (str[i] - '0');
+        i++;
+    }
+
+    return sign * retval;
+}
+
 
 void htoa(int num, char *str) {
     strcat(str, "0x");

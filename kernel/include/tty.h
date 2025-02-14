@@ -64,8 +64,5 @@ bool cursor_valid();
 void cursor_move(uint8_t col, uint8_t row);
 uint16_t get_cursor_pos();
 
-// Basic CLI setup
-void tty_setup();
-
 #endif
 

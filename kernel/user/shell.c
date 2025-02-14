@@ -13,7 +13,7 @@
 static char command_buffer[COMMAND_MAXSIZE];
 static char *command_history[COMMAND_HISTORY_MAXSIZE];
 
-// Key flags
+/* Key flags */
 static bool await_next_flag = false;  // Some special keys interrupt twice with KEY_AWAIT_NEXT enum
 static bool shift_flag = false;
 static bool capslock_flag = false;
@@ -24,7 +24,6 @@ static void cmd_help() {
     kprint("\ttime      (show uptime in seconds and ticks)\n");
     kprint("\tsleep     (beep and pause the CPU for 3 seconds)\n");
     kprint("\tcls       (clear screen)\n");
-    kprint("\tcrash     (crash the system with ISR handler)\n");
     kprint("\tshutdown  (shut down VM machine)\n");
     kprint("\treboot    (restart VM machine)\n");
     kprint("\tdebug     (enter keyboard debug mode)\n");
@@ -43,7 +42,6 @@ static void cmd_time() {
     kprint_color(tick_tmp, TTY_BLACK, TTY_BROWN);
     kprint_color(")", TTY_BLACK, TTY_BROWN);
 }
-
 
 
 static void cmd_sleep() {
@@ -92,15 +90,15 @@ static void cmd_debug() {
                     kb_debug_stop_flag = true;
                     break;
                 }
-                char sc_temp = 0;
+                char sc_converted = 0;
                 keyboard_buffer_pop();
                 kprint("INT: ");
                 kprintint(sc);
                 kprint("\tHEX: ");
                 kprinthex(sc);
                 kprint("\tCHAR: ");
-                scancode_to_char(sc, &sc_temp);
-                kputchar(sc_temp);
+                scancode_to_char(sc, &sc_converted);
+                kputchar(sc_converted);
                 newline();
             }
             newline();
@@ -153,9 +151,8 @@ void shell_key_handler() {
             return;
         }
 
-        else if (await_next_flag) {
+        else if (await_next_flag)
             await_next_flag = false;
-        }
 
         else if (scancode_to_char(current_key, &current_char)) {
             // Caps-Lock can only do case conversion, shift can also convert non-alphabetic characters
@@ -169,19 +166,19 @@ void shell_key_handler() {
 
         else if (scancode_is_special(current_key)) {
             switch (current_key) {
-                case(KEY_CAPSLOCK):
+                case KEY_CAPSLOCK:
                     capslock_flag = !capslock_flag;
                     break;
-                case(KEY_LSHIFT):
-                case(KEY_LSHIFT_UP):
-                case(KEY_RSHIFT):
-                case(KEY_RSHIFT_UP):
+                case KEY_LSHIFT:
+                case KEY_LSHIFT_UP:
+                case KEY_RSHIFT:
+                case KEY_RSHIFT_UP:
                     shift_flag = !shift_flag;
                     break;
-                case(KEY_BACKSPACE):
+                case KEY_BACKSPACE:
                     command_backspace();
                     break;
-                case(KEY_ENTER):
+                case KEY_ENTER:
                     if (strlen(command_buffer))
                         shell_execute(command_buffer);
                     else {
@@ -189,11 +186,12 @@ void shell_key_handler() {
                         shell_print_prefix();
                     }
                     break;
-                case(KEY_TAB):
+                case KEY_TAB:
                     tab();
                     break;
-                case(KEY_AWAIT_NEXT):
+                case KEY_AWAIT_NEXT:
                     await_next_flag = true;
+                    break;
             }
         }
         keyboard_buffer_pop();
@@ -229,9 +227,6 @@ void shell_execute(const char *command) {
 
     else if (strcmp(base_command, "reboot") == 0)
         cmd_reboot();
-
-    else if (strcmp(base_command, "crash") == 0)
-        asm("int $18");
 
     else if (strcmp(base_command, "debug") == 0)
         cmd_debug();

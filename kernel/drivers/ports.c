@@ -7,12 +7,10 @@ uint8_t inb(uint16_t port) {
     return result;
 }
 
-
 // Write a byte to a port
 void outb(uint16_t port, uint8_t data) {
     asm volatile("out %%al, %%dx" : : "a" (data), "d" (port));
 }
-
 
 // Read a word from a port
 uint16_t inw(uint16_t port) {

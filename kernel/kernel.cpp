@@ -5,10 +5,14 @@ extern "C" {
     #include "include/buzzer.h"
     #include "include/keyboard.h"
     #include "include/shell.h"
+    #include "include/string.h"
+    #include "include/multiboot.h"
 }
 
 class CppTesting {
     /*
+        Testing C/C++ compatibility
+
         CppTesting cpptest;
         cpptest.set_msg("Testing from C++\n");
         cpptest.print_msg();
@@ -28,7 +32,7 @@ class CppTesting {
 
 void kernel_loop() {
     for (;;) {
-        cpu_sleep(1);                       // Slowing down the main loop
+        cpu_sleep(1);                       // Halting the CPU each second
         if (keyboard_performed_event()) {
             shell_key_handler();            // Handle keyboard buffer, print output, process commands...
             if (keyboard_buffer_full())     
@@ -38,25 +42,9 @@ void kernel_loop() {
 }
 
 
-extern "C" void kernel_main() {
+extern "C" void kernel_main(uint32_t magic, struct multiboot_info *boot_info) {
     isr_setup();
     irq_setup();
     shell_setup();
-
-    /*
-    char cmd[] = "command -arg1 --arg2 /arg3";
-    char separators[] = "-/";
-    char *argv = strtok(cmd, separators);
-    int argc = 0;
-
-    while (argv) {
-        kprint(argv);
-        newline();
-        argv = strtok(NULL, separators);
-        ++argc;
-    }
-    kprintint(argc);
-    */
-
     kernel_loop();
 }

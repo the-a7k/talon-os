@@ -3,10 +3,9 @@
 #include "../include/ports.h"
 #include "../include/isr.h"
 
-
-static bool keyboard_event_flag = false;      // Triggers on every keyboard interrupt
-keyboard_t keyboard_main = { 0 };             // Keyboard key buffer controller
-
+static bool keyboard_event_flag = false;                 // Triggers on every keyboard interrupt
+static keyboard_t keyboard_main = { 0 };                 // Keyboard key buffer controller
+static bool keyboard_buffer_push(const scancode_t sc);   // Declaration for interrupt callback
 
 static const char keyboard_scancode_keys[255] = {
     // Keyboard map of basic characters indexed by scancode
@@ -29,6 +28,19 @@ static const char keyboard_scancode_keys_shift[255] = {
     0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~', 0,
     '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?',
 };
+
+
+static void keyboard_callback(registers_t *reg) {
+    scancode_t sc = inb(0x60);  // Scancode location
+    keyboard_buffer_push(sc);
+    keyboard_event_flag = true;
+}
+
+
+void keyboard_init() {
+    interrupt_handler_install(IRQ1, keyboard_callback);
+    keyboard_buffer_flush(&keyboard_main);
+}
 
 
 bool scancode_to_char(const scancode_t sc, char *c) {
@@ -75,7 +87,7 @@ scancode_t *keyboard_buffer_get() {
 
 
 void keyboard_buffer_flush() {
-    // Works as initializer or destoyer, unhandled scancodes will stay in buffer 
+    // Works as init/destroy, unhandled scancodes will stay in buffer (and will be overwritten)
     keyboard_main.front_pos = keyboard_main.back_pos = 0;
 }
 
@@ -90,18 +102,6 @@ bool keyboard_buffer_full() {
 }
 
 
-static bool keyboard_buffer_push(const scancode_t sc) {
-    // Needs to be static, push used only by keyboard interrupt itself
-    if (keyboard_buffer_full(keyboard_main))
-        return false;
-
-    const size_t next_pos = (keyboard_main.back_pos + 1) % KEYBOARD_BUFFER_MAXSIZE;
-    keyboard_main.buffer[keyboard_main.back_pos] = sc;
-    keyboard_main.back_pos = next_pos;
-    return true;
-}
-
-
 bool keyboard_buffer_pop() {
     if (!keyboard_buffer_empty(keyboard_main)) {
         keyboard_main.front_pos = (keyboard_main.front_pos + 1) % KEYBOARD_BUFFER_MAXSIZE;
@@ -110,6 +110,17 @@ bool keyboard_buffer_pop() {
     return false;
 }
 
+
+static bool keyboard_buffer_push(const scancode_t sc) {
+    // Needs to be static, push can be used only by keyboard interrupt itself
+    if (keyboard_buffer_full(keyboard_main))
+        return false;
+
+    const size_t next_pos = (keyboard_main.back_pos + 1) % KEYBOARD_BUFFER_MAXSIZE;
+    keyboard_main.buffer[keyboard_main.back_pos] = sc;
+    keyboard_main.back_pos = next_pos;
+    return true;
+}
 
 
 bool keyboard_buffer_next(scancode_t *sc) {
@@ -130,17 +141,4 @@ bool keyboard_buffer_last(scancode_t *sc) {
     const size_t last_pos = (keyboard_main.back_pos) ? (keyboard_main.back_pos - 1) : (KEYBOARD_BUFFER_MAXSIZE - 1);
     *sc = keyboard_main.buffer[last_pos];
     return true;
-}
-
-
-static void keyboard_callback(registers_t *reg) {
-    scancode_t sc = inb(0x60);  // Scancode location
-    keyboard_buffer_push(sc);
-    keyboard_event_flag = true;
-}
-
-
-void keyboard_init() {
-    interrupt_handler_install(IRQ1, keyboard_callback);
-    keyboard_buffer_flush(&keyboard_main);
 }

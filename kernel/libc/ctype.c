@@ -1,5 +1,6 @@
 #include "../include/ctype.h"
 
+
 bool islower(const char c) {
     return c >= 'a' && c <= 'z';
 }
